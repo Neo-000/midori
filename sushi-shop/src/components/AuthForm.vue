@@ -55,7 +55,8 @@
 import { ref } from 'vue'
 import axios from 'axios'
 import auth from '../stores/auth'
-import { useAttrs } from 'vue'
+
+const emit = defineEmits(['success', 'admin-login'])
 
 const mode = ref('login') // login | register
 const loading = ref(false)
@@ -66,9 +67,6 @@ const form = ref({
   name: '',
   password: ''
 })
-
-// ВАЖНО! для emit в <script setup>
-const emit = defineEmits(['success'])
 
 // Простые правила валидации
 const rules = {
@@ -98,43 +96,26 @@ async function onSubmit() {
   loading.value = true
   try {
     if (mode.value === 'login') {
-      // Логируем отправляемые данные
-      console.log('Попытка входа:', {
-        phone: form.value.phone,
-        password: form.value.password
-      })
-
       const { data } = await axios.post('http://localhost:5000/api/auth/login', {
         phone: form.value.phone,
         password: form.value.password
       })
-
-      // Логируем ответ сервера
-      console.log('Ответ сервера на login:', data)
-      console.log('Данные для сохранения:', data.user)
       auth.login(data.token, data.user)
+      form.value.password = ''
       loading.value = false
       error.value = ''
-      form.value.password = ''
       // emit success для закрытия модалки
-      emit('success')
+      if (data.user.isAdmin) {
+        emit('admin-login')
+      } else {
+        emit('success')
+      }
     } else {
-      // Логируем отправляемые данные при регистрации
-      console.log('Попытка регистрации:', {
+      await axios.post('http://localhost:5000/api/auth/register', {
         name: form.value.name,
         phone: form.value.phone,
         password: form.value.password
       })
-
-      const { data } = await axios.post('http://localhost:5000/api/auth/register', {
-        name: form.value.name,
-        phone: form.value.phone,
-        password: form.value.password
-      })
-
-      // Логируем ответ сервера на регистрацию
-      console.log('Ответ сервера на register:', data)
-
       mode.value = 'login'
       error.value = 'Регистрация прошла успешно! Войдите.'
       loading.value = false
@@ -142,8 +123,6 @@ async function onSubmit() {
   } catch (e) {
     loading.value = false
     error.value = e.response?.data?.message || 'Ошибка'
-    // Логируем ошибку для отладки
-    console.log('Ошибка при авторизации/регистрации:', e.response?.data || e)
   }
 }
 </script>

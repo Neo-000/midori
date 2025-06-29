@@ -1,22 +1,31 @@
 import { createRouter, createWebHistory } from 'vue-router'
-
 import HomePage from '../views/HomePage.vue'
-import CartPage from '../views/CartPage.vue'
-import LoginPage from '../views/LoginPage.vue'
-import RegisterPage from '../views/RegisterPage.vue'
 import AdminPage from '../views/AdminPage.vue'
+// ... другие импорты
+
+import auth from '../stores/auth'
 
 const routes = [
-  { path: '/', component: HomePage, name: 'Home' },
-  { path: '/cart', component: CartPage, name: 'Cart' },
-  { path: '/login', component: LoginPage, name: 'Login' },
-  { path: '/register', component: RegisterPage, name: 'Register' },
-  { path: '/admin', component: AdminPage, name: 'Admin' },
+  { path: '/', component: HomePage },
+  { path: '/admin', component: AdminPage },
+  // ... твои остальные маршруты
 ]
 
 const router = createRouter({
   history: createWebHistory(),
-  routes,
+  routes
+})
+
+router.beforeEach((to, from, next) => {
+  if (to.path.startsWith('/admin')) {
+    if (auth.user.value && auth.user.value.isAdmin) {
+      next()
+    } else {
+      next('/')
+    }
+  } else {
+    next()
+  }
 })
 
 export default router
