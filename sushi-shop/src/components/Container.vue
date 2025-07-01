@@ -1,16 +1,11 @@
-<script setup>
-import AppHeader from './components/AppHeader.vue'
-</script>
-
 <template>
-  <div class="app-container">
-    <AppHeader></AppHeader>
-    <router-view />
+  <div class="container">
+    <slot />
   </div>
 </template>
 
-<style>
-.app-container {
+<style scoped>
+.container {
   max-width: 1240px;
   margin: 0 auto;
   padding-left: 24px;
@@ -18,16 +13,14 @@ import AppHeader from './components/AppHeader.vue'
   width: 100%;
   box-sizing: border-box;
 }
-
 @media (max-width: 900px) {
-  .app-container {
+  .container {
     padding-left: 12px;
     padding-right: 12px;
   }
 }
-
 @media (max-width: 600px) {
-  .app-container {
+  .container {
     padding-left: 4px;
     padding-right: 4px;
   }
