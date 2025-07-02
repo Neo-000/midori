@@ -1,4 +1,5 @@
 import { API_BASE_URL } from './constants'
+import { useAuthStore } from './store/auth'
 
 // Получить все категории
 export async function getCategories() {
@@ -28,10 +29,23 @@ export async function createOrder(order) {
   return await res.json()
 }
 
+// --- Вспомогательная функция для получения токена ---
+function getToken() {
+  // Берёт токен напрямую из Pinia (без необходимости прокидывать в каждую функцию)
+  try {
+    const authStore = useAuthStore()
+    if (!authStore.token) throw new Error('Требуется авторизация')
+    return authStore.token
+  } catch (e) {
+    throw new Error('Требуется авторизация')
+  }
+}
+
 // ---- АДМИНКА ----
 
 // Добавить категорию с картинкой
-export async function addCategoryApi(name, file, token) {
+export async function addCategoryApi(name, file) {
+  const token = getToken()
   const form = new FormData()
   form.append('name', name)
   if (file) form.append('image', file)
@@ -43,12 +57,16 @@ export async function addCategoryApi(name, file, token) {
     },
     body: form
   })
-  if (!res.ok) throw new Error('Ошибка добавления категории')
+  if (!res.ok) {
+    const errText = await res.text()
+    throw new Error('Ошибка добавления категории: ' + errText)
+  }
   return await res.json()
 }
 
 // Добавить товар с картинкой
-export async function addProductApi({ title, price, category, file, description }, token) {
+export async function addProductApi({ title, price, category, file, description }) {
+  const token = getToken()
   const form = new FormData()
   form.append('title', title)
   form.append('price', price)
@@ -63,6 +81,9 @@ export async function addProductApi({ title, price, category, file, description 
     },
     body: form
   })
-  if (!res.ok) throw new Error('Ошибка добавления товара')
+  if (!res.ok) {
+    const errText = await res.text()
+    throw new Error('Ошибка добавления товара: ' + errText)
+  }
   return await res.json()
 }

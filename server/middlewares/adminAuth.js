@@ -1,4 +1,4 @@
-// server/middleware/adminAuth.js
+// server/middlewares/adminAuth.js
 const jwt = require('jsonwebtoken')
 const User = require('../models/User')
 
@@ -10,8 +10,6 @@ module.exports.adminAuth = async (req, res, next) => {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET)
     const user = await User.findById(decoded.userId)
-    // Меняй условие под свои нужды, например, по email:
-    // if (!user || (user.role !== 'admin' && user.email !== 'youremail@site.com'))
     if (!user || user.role !== 'admin') return res.status(403).json({ message: 'Нет доступа' })
     req.user = user
     next()

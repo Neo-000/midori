@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { API_BASE_URL } from '../constants'
 
 export const useAuthStore = defineStore('auth', () => {
@@ -28,11 +28,9 @@ export const useAuthStore = defineStore('auth', () => {
       body: JSON.stringify({ email, password, name })
     })
     if (!res.ok) throw new Error('Ошибка регистрации')
-    // Можно автоматически залогинить после регистрации
     await login(email, password)
   }
 
-  // Выход
   function logout() {
     user.value = null
     token.value = ''
@@ -51,6 +49,14 @@ export const useAuthStore = defineStore('auth', () => {
       logout()
     }
   }
+
+  // --- АВТОФЕТЧ после старта, если токен есть ---
+  if (token.value && !user.value) {
+    fetchMe()
+  }
+
+  // --- Можно вот так, если нужен автомат при каждом изменении токена:
+  // watch(token, (newVal) => { if (newVal) fetchMe() })
 
   return { user, token, login, register, logout, fetchMe }
 })

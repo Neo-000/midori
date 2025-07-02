@@ -1,4 +1,8 @@
 <template>
+  <div v-if="auth.token || (auth.user && auth.user.role)" class="debug-auth-info">
+  <div><b>Token:</b> {{ auth.token }}</div>
+  <div><b>Role:</b> {{ auth.user && auth.user.role }}</div>
+</div>
   <div class="topbar">
     <div class="topbar-left">
       <el-icon><Location /></el-icon>
