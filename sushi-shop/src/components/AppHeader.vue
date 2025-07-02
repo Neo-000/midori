@@ -72,8 +72,9 @@
       type="default"
       @click="drawer = true"
     >
-      <el-icon><Menu /></el-icon>
-    </el-button>
+    <!-- <el-icon><Menu /></el-icon> -->
+    <el-icon><DArrowRight /></el-icon>
+  </el-button>
     <div style="flex: 1"></div>
     <el-button
       type="primary"
@@ -167,7 +168,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ShoppingCartFull, User, Menu, Location } from '@element-plus/icons-vue'
+import { ShoppingCartFull, User, Menu, Location, DArrowRight } from '@element-plus/icons-vue'
 import LoginModal from './LoginModal.vue'
 import { getCategories } from '../api'
 import { useAuthStore } from '../store/auth'
@@ -227,7 +228,7 @@ const loginModal = ref(false)
 
 
 
-<style scoped>
+ <style scoped>
 .topbar {
   display: flex;
   justify-content: space-between;
@@ -342,15 +343,15 @@ const loginModal = ref(false)
 }
 .burger-btn:hover, .burger-btn:focus {
   background: #f0f8ff;
-  border-color: #409EFF;
+  /* border-color: #409EFF; */
   color: #3074c5;
-  box-shadow: 0 4px 16px rgba(64, 158, 255, 0.13);
+  /* box-shadow: 0 4px 16px rgba(64, 158, 255, 0.13); */
 }
 .burger-btn .el-icon {
   transition: transform 0.15s;
 }
 .burger-btn:hover .el-icon {
-  transform: scale(1.18) rotate(8deg);
+  /* transform: scale(1.18) rotate(8deg); */
 }
 
 .header-mobile-actions {
@@ -458,7 +459,7 @@ const loginModal = ref(false)
   }
   .header-logo-img {
     width: 120px;
-    height: 26px;
+    height: 60px;
     margin: 0 auto 0 auto;
     display: block;
   }
@@ -479,12 +480,13 @@ const loginModal = ref(false)
     display: none !important;
   }
   .header-mobile-actions {
+
     width: 100%;
     display: flex !important;
     justify-content: space-between;
     align-items: center;
     gap: 0;
-    margin: 8px 0 0 0;
+    margin: 8px 0 1rem 0;
   }
   /* Корзина на мобилке — прямоугольная */
   .header-cart-btn {
