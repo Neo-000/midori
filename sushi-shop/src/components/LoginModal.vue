@@ -1,60 +1,131 @@
 <template>
     <el-dialog
-      v-model="show"
-      width="350px"
+      :model-value="modelValue"
+      @update:modelValue="emit('update:modelValue', $event)"
+      width="370px"
       :close-on-click-modal="false"
-      center
     >
       <template #header>
-        <div class="dialog-title">{{ isRegister ? 'Регистрация' : 'Вход' }}</div>
+        <div class="dialog-title">{{ isLogin ? "Вход" : "Регистрация" }}</div>
       </template>
-      <el-form :model="form" class="login-form">
-        <el-form-item prop="email">
-          <el-input v-model="form.email" placeholder="Email" autocomplete="username" />
-        </el-form-item>
-        <el-form-item prop="password">
-          <el-input v-model="form.password" placeholder="Пароль" type="password" autocomplete="current-password" />
-        </el-form-item>
-        <el-button
-          type="primary"
-          style="width: 100%; margin-top: 6px"
-          @click="submit"
-        >
-          {{ isRegister ? 'Зарегистрироваться' : 'Войти' }}
-        </el-button>
-        <div style="text-align:center; margin-top:14px; font-size:13px;">
-          <a href="#" @click.prevent="isRegister = !isRegister">
-            {{ isRegister ? 'Уже есть аккаунт? Войти' : 'Нет аккаунта? Зарегистрироваться' }}
+  
+      <form @submit.prevent="handleSubmit" class="login-form">
+        <input v-model="email" placeholder="Email" required />
+        <input v-model="password" placeholder="Пароль" type="password" required />
+        <input
+          v-if="!isLogin"
+          v-model="name"
+          placeholder="Ваше имя"
+          required
+          autocomplete="off"
+        />
+        <div v-if="error" class="error-msg">{{ error }}</div>
+        <button type="submit" :disabled="loading">
+          {{ loading ? "Отправка..." : isLogin ? "Войти" : "Зарегистрироваться" }}
+        </button>
+      </form>
+      <div class="form-switch">
+        <span>
+          {{ isLogin ? "Нет аккаунта?" : "Есть аккаунт?" }}
+          <a href="#" @click.prevent="isLogin = !isLogin">
+            {{ isLogin ? "Зарегистрироваться" : "Войти" }}
           </a>
-        </div>
-      </el-form>
+        </span>
+      </div>
     </el-dialog>
   </template>
   
   <script setup>
-  import { ref, reactive, watch } from 'vue'
+  import { ref, watch } from 'vue'
+  import { useAuthStore } from '../store/auth'
+  
   const props = defineProps({
-    modelValue: Boolean,
+    modelValue: Boolean
   })
   const emit = defineEmits(['update:modelValue', 'success'])
-  const show = ref(props.modelValue)
-  watch(() => props.modelValue, v => show.value = v)
-  watch(show, v => emit('update:modelValue', v))
   
-  const isRegister = ref(false)
-  const form = reactive({ email: '', password: '' })
+  const email = ref('')
+  const password = ref('')
+  const name = ref('')
+  const isLogin = ref(true)
+  const loading = ref(false)
+  const error = ref('')
   
-  function submit() {
-    // Мок: если что-то ввели — считаем, что залогинились
-    if (form.email && form.password) {
-      emit('success', { email: form.email, name: form.email.split('@')[0] })
-      show.value = false
+  const auth = useAuthStore()
+  
+  watch(() => props.modelValue, (val) => {
+    if (val) {
+      email.value = ''
+      password.value = ''
+      name.value = ''
+      error.value = ''
+      loading.value = false
+      isLogin.value = true
+    }
+  })
+  
+  async function handleSubmit() {
+    error.value = ''
+    loading.value = true
+    try {
+      if (isLogin.value) {
+        await auth.login(email.value, password.value)
+      } else {
+        await auth.register(email.value, password.value, name.value)
+      }
+      emit('success', auth.user)
+      emit('update:modelValue', false)
+    } catch (e) {
+      error.value = e.message || 'Ошибка'
+    } finally {
+      loading.value = false
     }
   }
   </script>
   
   <style scoped>
-  .login-form { margin-top: 18px; }
-  .dialog-title { font-size: 19px; font-weight: 600; }
+  .login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  input {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 15px;
+  }
+  button[type="submit"] {
+    background: #409EFF;
+    color: #fff;
+    padding: 10px 0;
+    border: none;
+    border-radius: 7px;
+    font-size: 17px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .error-msg {
+    color: #d8231e;
+    font-size: 14px;
+    margin-bottom: 3px;
+    margin-top: -5px;
+  }
+  .form-switch {
+    font-size: 14px;
+    text-align: center;
+  }
+  .form-switch a {
+    color: #409EFF;
+    cursor: pointer;
+    text-decoration: underline;
+  }
+  .dialog-title {
+    font-size: 22px;
+    font-weight: bold;
+    margin-bottom: 0;
+  }
   </style>
   

@@ -29,16 +29,16 @@
     </div>
     <div class="header-info">
       <span class="header-phone">+7 (900) 777-77-77</span>
-      <template v-if="user">
+      <template v-if="auth.user">
         <el-dropdown>
           <span class="header-user" style="cursor:pointer">
-            {{ user.name }}
+            {{ auth.user.name || auth.user.email }}
             <el-icon><User /></el-icon>
           </span>
           <template #dropdown>
             <el-dropdown-menu>
               <el-dropdown-item @click="$router.push('/profile')">Профиль</el-dropdown-item>
-              <el-dropdown-item @click="logout">Выйти</el-dropdown-item>
+              <el-dropdown-item @click="auth.logout">Выйти</el-dropdown-item>
             </el-dropdown-menu>
           </template>
         </el-dropdown>
@@ -147,9 +147,8 @@
   </el-drawer>
 
   <!-- Модалка авторизации -->
-  <LoginModal v-model="loginModal" @success="handleLoginSuccess" />
+  <LoginModal v-model="loginModal" />
 </template>
-
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
@@ -157,6 +156,9 @@ import { useRoute, useRouter } from 'vue-router'
 import { ShoppingCartFull, User, Menu, Location } from '@element-plus/icons-vue'
 import LoginModal from './LoginModal.vue'
 import { getCategories } from '../api'
+import { useAuthStore } from '../store/auth'
+
+const auth = useAuthStore()
 
 // Мультиязычность (мок)
 const locales = ['ru', 'en', 'rs']
@@ -184,6 +186,7 @@ async function loadCategories() {
 onMounted(() => {
   window.addEventListener('resize', handleResize)
   loadCategories()
+  auth.fetchMe() // автоматический вход по токену
 })
 onUnmounted(() => {
   window.removeEventListener('resize', handleResize)
@@ -208,16 +211,10 @@ function onDrawerSelect(catId) {
   onSelectCategory(catId)
 }
 
-// ---- Авторизация ----
-const user = ref(null)
 const loginModal = ref(false)
-function handleLoginSuccess(userData) {
-  user.value = userData
-}
-function logout() {
-  user.value = null
-}
 </script>
+
+
 
 
 

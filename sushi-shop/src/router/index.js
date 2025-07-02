@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { useAuthStore } from '../store/auth'
 
 const routes = [
   { path: '/', name: 'Menu', component: () => import('../pages/MenuPage.vue') },
@@ -6,10 +7,32 @@ const routes = [
   { path: '/profile', name: 'Profile', component: () => import('../pages/ProfilePage.vue') },
   { path: '/delivery', name: 'Delivery', component: () => import('../pages/DeliveryPage.vue') },
   { path: '/about', name: 'About', component: () => import('../pages/AboutPage.vue') },
-  // { path: '/admin', name: 'Admin', component: () => import('../pages/AdminPage.vue') }, // потом
+  {
+    path: '/admin',
+    name: 'Admin',
+    component: () => import('../pages/AdminPage.vue'),
+    meta: { requiresAdmin: true }
+  }
 ]
 
-export default createRouter({
+const router = createRouter({
   history: createWebHistory(),
   routes,
 })
+
+// Глобальная защита роутов для админки
+router.beforeEach((to, from, next) => {
+  const auth = useAuthStore()
+
+  // Проверка: если нужно быть админом, а пользователь не админ — не пускать
+  if (to.meta.requiresAdmin) {
+    // Проверяем роль (или email, если роль не используется)
+    if (!auth.user || (auth.user.role !== 'admin' && auth.user.email !== 'your_admin_email@example.com')) {
+      // Редирект на главную или show 403
+      return next('/')
+    }
+  }
+  next()
+})
+
+export default router
