@@ -27,7 +27,7 @@ router.beforeEach((to, from, next) => {
   // Проверка: если нужно быть админом, а пользователь не админ — не пускать
   if (to.meta.requiresAdmin) {
     // Проверяем роль (или email, если роль не используется)
-    if (!auth.user || (auth.user.role !== 'admin' && auth.user.email !== 'your_admin_email@example.com')) {
+    if (!auth.user || (auth.user.role !== 'admin')) {
       // Редирект на главную или show 403
       return next('/')
     }

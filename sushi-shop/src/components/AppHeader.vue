@@ -164,7 +164,6 @@ import { useAuthStore } from '../store/auth'
 
 const auth = useAuthStore()
 
-// Мультиязычность (мок)
 const locales = ['ru', 'en', 'rs']
 const currentLocale = ref('ru')
 function flagSrc(lang) {
@@ -181,7 +180,6 @@ const route = useRoute()
 const router = useRouter()
 const isMobile = ref(window.innerWidth < 700)
 const drawer = ref(false)
-
 const categories = ref([])
 
 async function loadCategories() {
@@ -190,16 +188,13 @@ async function loadCategories() {
 onMounted(() => {
   window.addEventListener('resize', handleResize)
   loadCategories()
-  auth.fetchMe() // автоматический вход по токену
 })
 onUnmounted(() => {
   window.removeEventListener('resize', handleResize)
 })
-
 function handleResize() {
   isMobile.value = window.innerWidth < 700
 }
-
 function isActive(path) {
   return route.path === path
 }

@@ -1,12 +1,11 @@
 import { defineStore } from 'pinia'
-import { ref, watch } from 'vue'
+import { ref } from 'vue'
 import { API_BASE_URL } from '../constants'
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref(null)
   const token = ref(localStorage.getItem('token') || '')
 
-  // Логин
   async function login(email, password) {
     const res = await fetch(`${API_BASE_URL}/auth/login`, {
       method: 'POST',
@@ -20,7 +19,6 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.setItem('token', data.token)
   }
 
-  // Регистрация
   async function register(email, password, name) {
     const res = await fetch(`${API_BASE_URL}/auth/register`, {
       method: 'POST',
@@ -37,7 +35,6 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.removeItem('token')
   }
 
-  // Получить пользователя по токену (если нужно)
   async function fetchMe() {
     if (!token.value) return
     const res = await fetch(`${API_BASE_URL}/auth/me`, {
@@ -49,14 +46,6 @@ export const useAuthStore = defineStore('auth', () => {
       logout()
     }
   }
-
-  // --- АВТОФЕТЧ после старта, если токен есть ---
-  if (token.value && !user.value) {
-    fetchMe()
-  }
-
-  // --- Можно вот так, если нужен автомат при каждом изменении токена:
-  // watch(token, (newVal) => { if (newVal) fetchMe() })
 
   return { user, token, login, register, logout, fetchMe }
 })

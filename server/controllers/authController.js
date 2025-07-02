@@ -46,3 +46,21 @@ exports.login = async (req, res) => {
     res.status(500).json({ message: 'Ошибка сервера' })
   }
 }
+
+// МЕТОД ДЛЯ /auth/me
+exports.me = async (req, res) => {
+  try {
+    // req.user создается в middleware/auth.js из токена
+    const user = await User.findById(req.user.userId).select('-password')
+    if (!user) return res.status(404).json({ message: 'Пользователь не найден' })
+    // Можно вернуть user как есть, либо только нужные поля:
+    res.json({
+      id: user._id,
+      email: user.email,
+      name: user.name,
+      role: user.role
+    })
+  } catch (err) {
+    res.status(500).json({ message: 'Ошибка сервера' })
+  }
+}

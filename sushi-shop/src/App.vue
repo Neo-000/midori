@@ -1,10 +1,17 @@
 <script setup>
 import AppHeader from './components/AppHeader.vue'
+import { onMounted } from 'vue'
+import { useAuthStore } from './store/auth'
+
+const auth = useAuthStore()
+onMounted(() => {
+  auth.fetchMe()
+})
 </script>
 
 <template>
   <div class="app-container">
-    <AppHeader></AppHeader>
+    <AppHeader />
     <router-view />
   </div>
 </template>
