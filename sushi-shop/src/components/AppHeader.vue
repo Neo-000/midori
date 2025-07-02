@@ -1,5 +1,4 @@
 <template>
-  <!-- 1. Верхняя серая полоса -->
   <div class="topbar">
     <div class="topbar-left">
       <el-icon><Location /></el-icon>
@@ -24,20 +23,37 @@
     </div>
   </div>
 
-  <!-- 2. Логотип и инфо -->
   <el-header class="main-header">
     <div class="header-logo-block">
       <img src="/src/assets/logo.svg" alt="Midori Sushi" class="header-logo-img" />
     </div>
     <div class="header-info">
       <span class="header-phone">+7 (900) 777-77-77</span>
-      <span class="header-user">
-        User
-        <el-icon><User /></el-icon>
-      </span>
+      <template v-if="user">
+        <el-dropdown>
+          <span class="header-user" style="cursor:pointer">
+            {{ user.name }}
+            <el-icon><User /></el-icon>
+          </span>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item @click="$router.push('/profile')">Профиль</el-dropdown-item>
+              <el-dropdown-item @click="logout">Выйти</el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
+      </template>
+      <el-button
+        v-else
+        class="header-login-btn"
+        type="default"
+        @click="loginModal = true"
+        style="margin-left:10px;"
+      >
+        <el-icon><User /></el-icon> Войти
+      </el-button>
     </div>
     <div class="header-spacer"></div>
-    <!-- Корзина на десктопе -->
     <el-button
       v-if="!isMobile"
       type="primary"
@@ -50,13 +66,11 @@
     </el-button>
   </el-header>
 
-  <!-- 3. Бургер и корзина — только на мобиле, отдельной строкой -->
   <div class="header-mobile-actions" v-if="isMobile">
     <el-button
       class="burger-btn"
       type="default"
       @click="drawer = true"
-      circle
     >
       <el-icon><Menu /></el-icon>
     </el-button>
@@ -71,7 +85,6 @@
     </el-button>
   </div>
 
-  <!-- 4. Навигация (Главная, Доставка, О нас, Личный кабинет) — всегда -->
   <div class="nav-menu">
     <el-button link class="nav-link" @click="$router.push('/')" :class="{active: isActive('/')}">
       Главная
@@ -85,7 +98,6 @@
     <el-button link class="nav-link" @click="$router.push('/profile')" :class="{active: isActive('/profile')}">
       Личный кабинет
     </el-button>
-    <!-- На десктопе Меню — дропдаун -->
     <el-dropdown
       v-if="!isMobile"
       trigger="click"
@@ -110,7 +122,6 @@
     </el-dropdown>
   </div>
 
-  <!-- Drawer категорий для мобильного -->
   <el-drawer
     v-model="drawer"
     direction="ltr"
@@ -134,6 +145,9 @@
       </el-menu-item>
     </el-menu>
   </el-drawer>
+
+  <!-- Модалка авторизации -->
+  <LoginModal v-model="loginModal" @success="handleLoginSuccess" />
 </template>
 
 <script setup>
@@ -141,22 +155,19 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import categories from '../mock/categories.json'
 import { ShoppingCartFull, User, Menu, Location } from '@element-plus/icons-vue'
+import LoginModal from './LoginModal.vue'
 
-// Мультиязычность (пока просто state, но готово для i18n)
+// Мультиязычность (мок)
 const locales = ['ru', 'en', 'rs']
 const currentLocale = ref('ru')
-
 function flagSrc(lang) {
   if (lang === 'en') return 'https://flagcdn.com/h20/gb.png'
   if (lang === 'ru') return 'https://flagcdn.com/h20/ru.png'
   if (lang === 'rs') return 'https://flagcdn.com/h20/rs.png'
   return ''
 }
-
 function changeLocale(loc) {
   currentLocale.value = loc
-  // В будущем: locale.value = loc (если vue-i18n)
-  // localStorage.setItem('lang', loc)
 }
 
 const route = useRoute()
@@ -177,7 +188,6 @@ onUnmounted(() => {
 function isActive(path) {
   return route.path === path
 }
-
 function onSelectCategory(cat) {
   if (route.path === '/') {
     router.replace({ path: '/', query: { category: cat } })
@@ -185,12 +195,24 @@ function onSelectCategory(cat) {
     router.push({ path: '/', query: { category: cat } })
   }
 }
-
 function onDrawerSelect(cat) {
   drawer.value = false
   onSelectCategory(cat)
 }
+
+// ---- Авторизация ----
+const user = ref(null)
+const loginModal = ref(false)
+function handleLoginSuccess(userData) {
+  user.value = userData
+}
+function logout() {
+  user.value = null
+}
 </script>
+
+<!-- Вставь сюда последние стили, которые тебе понравились! -->
+
 
 <style scoped>
 .topbar {
@@ -241,9 +263,11 @@ function onDrawerSelect(cat) {
 
 /* --- User и телефон: в ряд, а на мобилке столбиком --- */
 .header-info {
+  width: 100%;
   display: flex;
   flex-direction: row;      /* В ряд на десктопе */
   align-items: center;
+  justify-content:space-between;
   gap: 12px;
   margin-left: 8px;
 }
