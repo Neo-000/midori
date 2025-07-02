@@ -1,8 +1,4 @@
 <template>
-  <div v-if="auth.token || (auth.user && auth.user.role)" class="debug-auth-info">
-  <div><b>Token:</b> {{ auth.token }}</div>
-  <div><b>Role:</b> {{ auth.user && auth.user.role }}</div>
-</div>
   <div class="topbar">
     <div class="topbar-left">
       <el-icon><Location /></el-icon>
@@ -99,8 +95,22 @@
     <el-button link class="nav-link" @click="$router.push('/about')" :class="{active: isActive('/about')}">
       О нас
     </el-button>
-    <el-button link class="nav-link" @click="$router.push('/profile')" :class="{active: isActive('/profile')}">
+    <el-button
+     v-if="auth.user && auth.user.role === 'user'"
+    link 
+    class="nav-link" 
+    @click="$router.push('/profile')" 
+    :class="{active: isActive('/profile')}">
       Личный кабинет
+    </el-button>
+    <el-button
+        v-if="auth.user && auth.user.role === 'admin'"
+        
+        style="margin-left:16px;"
+        @click="$router.push('/admin')"
+      >
+        <el-icon><Menu /></el-icon>
+        <span class="admin-btn-label">Админ-панель</span>
     </el-button>
     <el-dropdown
       v-if="!isMobile"
@@ -362,6 +372,7 @@ const loginModal = ref(false)
   box-sizing: border-box;
   overflow-x: auto;
 }
+
 .menu-btn {
   font-weight: 500;
   font-size: 16px;
@@ -446,7 +457,7 @@ const loginModal = ref(false)
     margin-bottom: 0;
   }
   .header-logo-img {
-    width: 90px;
+    width: 120px;
     height: 26px;
     margin: 0 auto 0 auto;
     display: block;
@@ -512,6 +523,16 @@ const loginModal = ref(false)
   }
   .menu-btn {
     display: none !important;
+  }
+}
+
+@media (max-width: 410px) {
+    .nav-menu {
+      flex-wrap: wrap;
+    font-size: 14px;
+    min-height: 38px;
+    gap: 8px;
+    padding: 0 2px;
   }
 }
 </style>

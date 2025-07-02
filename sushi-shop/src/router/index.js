@@ -1,3 +1,4 @@
+// src/router/index.js
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '../store/auth'
 
@@ -20,17 +21,23 @@ const router = createRouter({
   routes,
 })
 
-// Глобальная защита роутов для админки
-router.beforeEach((to, from, next) => {
+// ---- ДОБАВЬ ЭТОТ КОД для защиты админки ----
+router.beforeEach(async (to, from, next) => {
   const auth = useAuthStore()
-
-  // Проверка: если нужно быть админом, а пользователь не админ — не пускать
+  // Если переходим на админку
   if (to.meta.requiresAdmin) {
-    // Проверяем роль (или email, если роль не используется)
-    if (!auth.user || (auth.user.role !== 'admin')) {
-      // Редирект на главную или show 403
-      return next('/')
+    // Если токен есть, но нет пользователя (перезагрузка, например) — подтягиваем пользователя
+    if (auth.token && !auth.user) {
+      await auth.fetchMe()
     }
+    // Если есть юзер и это админ — пускаем
+    if (auth.user && auth.user.role === 'admin') {
+      next()
+    } else {
+      // Иначе редиректим на главную (или показывай ошибку)
+      next('/')
+    }
+    return
   }
   next()
 })

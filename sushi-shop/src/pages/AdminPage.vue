@@ -40,47 +40,67 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import Container from '../components/Container.vue'
-import { getCategories, addCategory, getProducts, addProduct } from '../api'
 import { useAuthStore } from '../store/auth'
+import { getCategories, getProducts, addCategoryApi, addProductApi } from '../api'
+
 const auth = useAuthStore()
 
+// Категории и товары
 const categories = ref([])
 const products = ref([])
 
+// Данные для добавления категории
 const newCategory = ref('')
+const newCategoryFile = ref(null)
+
+// Данные для добавления товара
 const productTitle = ref('')
 const productPrice = ref('')
 const productCategory = ref('')
 const productFile = ref(null)
+const productDescription = ref('')
 
+// Загрузка начальных данных
 async function loadData() {
   categories.value = await getCategories()
   products.value = await getProducts()
+  if (categories.value.length > 0) {
+    productCategory.value = categories.value[0]._id
+  }
 }
 onMounted(loadData)
 
-async function addCategory() {
-  await addCategoryApi(newCategory.value, auth.token)
-  newCategory.value = ''
-  loadData()
+// Добавить категорию
+async function handleAddCategory() {
+  try {
+    await addCategoryApi(newCategory.value, newCategoryFile.value, auth.token)
+    newCategory.value = ''
+    newCategoryFile.value = null
+    await loadData()
+  } catch (e) {
+    alert(e.message)
+  }
 }
 
-function onFileChange(e) {
-  productFile.value = e.target.files[0]
-}
-
-async function addProduct() {
-  const form = new FormData()
-  form.append('title', productTitle.value)
-  form.append('price', productPrice.value)
-  form.append('category', productCategory.value)
-  if (productFile.value) form.append('image', productFile.value)
-  await addProductApi(form, auth.token)
-  productTitle.value = ''
-  productPrice.value = ''
-  productCategory.value = ''
-  productFile.value = null
-  loadData()
+// Добавить товар
+async function handleAddProduct() {
+  try {
+    await addProductApi({
+      title: productTitle.value,
+      price: productPrice.value,
+      category: productCategory.value,
+      file: productFile.value,
+      description: productDescription.value,
+    }, auth.token)
+    productTitle.value = ''
+    productPrice.value = ''
+    productCategory.value = categories.value[0]?._id || ''
+    productFile.value = null
+    productDescription.value = ''
+    await loadData()
+  } catch (e) {
+    alert(e.message)
+  }
 }
 </script>
+
