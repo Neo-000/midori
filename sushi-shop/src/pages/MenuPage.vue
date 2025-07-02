@@ -2,15 +2,17 @@
   <Container>
     <div class="product-list-title">
       <h1 v-if="!currentCategory">Все блюда</h1>
-      <h1 v-else>Категория: {{ currentCategory }}</h1>
+      <h1 v-else>
+        Категория: {{ currentCategoryName }}
+      </h1>
     </div>
     <div class="product-list">
       <ProductCard
-        v-for="product in filteredProducts"
-        :key="product.id"
+        v-for="product in products"
+        :key="product._id"
         :product="product"
       />
-      <div v-if="filteredProducts.length === 0" class="no-items">
+      <div v-if="products.length === 0" class="no-items">
         Нет товаров в этой категории
       </div>
     </div>
@@ -18,20 +20,40 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import products from '../mock/products.json'
+import { getCategories, getProducts } from '../api'
 import ProductCard from '../components/ProductCard.vue'
 import Container from '../components/Container.vue'
 
-// Категория из query (?category=)
 const route = useRoute()
+
+const categories = ref([])
+const products = ref([])
+
 const currentCategory = computed(() => route.query.category || null)
 
-// Фильтрация по категории
-const filteredProducts = computed(() => {
-  if (!currentCategory.value) return products
-  return products.filter(p => p.category === currentCategory.value)
+// Получаем имя текущей категории для вывода в заголовке
+const currentCategoryName = computed(() => {
+  if (!currentCategory.value) return ''
+  const cat = categories.value.find(c => c._id === currentCategory.value)
+  return cat ? cat.name : ''
+})
+
+async function loadCategories() {
+  categories.value = await getCategories()
+}
+async function loadProducts() {
+  products.value = await getProducts(currentCategory.value)
+}
+
+onMounted(async () => {
+  await loadCategories()
+  await loadProducts()
+})
+
+watch(() => route.query.category, async () => {
+  await loadProducts()
 })
 </script>
 

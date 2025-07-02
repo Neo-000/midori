@@ -112,10 +112,10 @@
         <el-dropdown-menu>
           <el-dropdown-item
             v-for="cat in categories"
-            :key="cat"
-            :command="cat"
+            :key="cat._id"
+            :command="cat._id"
           >
-            {{ cat }}
+            {{ cat.name }}
           </el-dropdown-item>
         </el-dropdown-menu>
       </template>
@@ -138,10 +138,10 @@
     >
       <el-menu-item
         v-for="cat in categories"
-        :key="cat"
-        :index="cat"
+        :key="cat._id"
+        :index="cat._id"
       >
-        {{ cat }}
+        {{ cat.name }}
       </el-menu-item>
     </el-menu>
   </el-drawer>
@@ -150,12 +150,13 @@
   <LoginModal v-model="loginModal" @success="handleLoginSuccess" />
 </template>
 
+
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import categories from '../mock/categories.json'
 import { ShoppingCartFull, User, Menu, Location } from '@element-plus/icons-vue'
 import LoginModal from './LoginModal.vue'
+import { getCategories } from '../api'
 
 // Мультиязычность (мок)
 const locales = ['ru', 'en', 'rs']
@@ -175,29 +176,36 @@ const router = useRouter()
 const isMobile = ref(window.innerWidth < 700)
 const drawer = ref(false)
 
-function handleResize() {
-  isMobile.value = window.innerWidth < 700
+const categories = ref([])
+
+async function loadCategories() {
+  categories.value = await getCategories()
 }
 onMounted(() => {
   window.addEventListener('resize', handleResize)
+  loadCategories()
 })
 onUnmounted(() => {
   window.removeEventListener('resize', handleResize)
 })
 
+function handleResize() {
+  isMobile.value = window.innerWidth < 700
+}
+
 function isActive(path) {
   return route.path === path
 }
-function onSelectCategory(cat) {
+function onSelectCategory(catId) {
   if (route.path === '/') {
-    router.replace({ path: '/', query: { category: cat } })
+    router.replace({ path: '/', query: { category: catId } })
   } else {
-    router.push({ path: '/', query: { category: cat } })
+    router.push({ path: '/', query: { category: catId } })
   }
 }
-function onDrawerSelect(cat) {
+function onDrawerSelect(catId) {
   drawer.value = false
-  onSelectCategory(cat)
+  onSelectCategory(catId)
 }
 
 // ---- Авторизация ----
@@ -211,7 +219,6 @@ function logout() {
 }
 </script>
 
-<!-- Вставь сюда последние стили, которые тебе понравились! -->
 
 
 <style scoped>
