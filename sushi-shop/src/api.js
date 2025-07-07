@@ -21,7 +21,6 @@ export async function createOrder(order) {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      // 'Authorization': `Bearer ${authStore.token}`, // если нужен токен
     },
     body: JSON.stringify(order)
   })
@@ -31,7 +30,6 @@ export async function createOrder(order) {
 
 // --- Вспомогательная функция для получения токена ---
 function getToken() {
-  // Берёт токен напрямую из Pinia (без необходимости прокидывать в каждую функцию)
   try {
     const authStore = useAuthStore()
     if (!authStore.token) throw new Error('Требуется авторизация')
@@ -43,7 +41,7 @@ function getToken() {
 
 // ---- АДМИНКА ----
 
-// Добавить категорию с картинкой
+// Добавить категорию с картинкой (если будет поддержка картинок)
 export async function addCategoryApi(name, file) {
   const token = getToken()
   const form = new FormData()
@@ -64,14 +62,47 @@ export async function addCategoryApi(name, file) {
   return await res.json()
 }
 
+// Обновить категорию по id
+export async function updateCategoryApi(id, name) {
+  const token = getToken()
+  const res = await fetch(`${API_BASE_URL}/admin/categories/${id}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify({ name })
+  })
+  if (!res.ok) {
+    const errText = await res.text()
+    throw new Error('Ошибка редактирования категории: ' + errText)
+  }
+  return await res.json()
+}
+
+// Удалить категорию по id
+export async function deleteCategoryApi(id) {
+  const token = getToken()
+  const res = await fetch(`${API_BASE_URL}/admin/categories/${id}`, {
+    method: 'DELETE',
+    headers: { 'Authorization': `Bearer ${token}` }
+  })
+  if (!res.ok) {
+    const errText = await res.text()
+    throw new Error('Ошибка удаления категории: ' + errText)
+  }
+  return await res.json()
+}
+
 // Добавить товар с картинкой
-export async function addProductApi({ title, price, category, file, description }) {
+export async function addProductApi({ title, price, category, file, description, weight }) {
   const token = getToken()
   const form = new FormData()
   form.append('title', title)
   form.append('price', price)
   form.append('category', category)
   if (description) form.append('description', description)
+  if (weight) form.append('weight', weight)
   if (file) form.append('image', file)
 
   const res = await fetch(`${API_BASE_URL}/admin/products`, {
@@ -84,6 +115,61 @@ export async function addProductApi({ title, price, category, file, description 
   if (!res.ok) {
     const errText = await res.text()
     throw new Error('Ошибка добавления товара: ' + errText)
+  }
+  return await res.json()
+}
+
+// Редактировать товар
+export async function updateProductApi(id, data) {
+  const token = getToken()
+  let body, headers
+  if (data.file) {
+    body = new FormData()
+    body.append('title', data.title)
+    body.append('price', data.price)
+    body.append('category', data.category)
+    if (data.weight) body.append('weight', data.weight)
+    if (data.description) body.append('description', data.description)
+    body.append('image', data.file)
+    headers = { 'Authorization': `Bearer ${token}` }
+  } else {
+    body = JSON.stringify({
+      title: data.title,
+      price: data.price,
+      category: data.category,
+      weight: data.weight,
+      description: data.description
+    })
+    headers = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    }
+  }
+
+  const res = await fetch(`${API_BASE_URL}/admin/products/${id}`, {
+    method: 'PUT',
+    headers,
+    body
+  })
+  if (!res.ok) {
+    const errText = await res.text()
+    throw new Error('Ошибка обновления товара: ' + errText)
+  }
+  return await res.json()
+}
+
+// Удалить товар по id
+export async function deleteProductApi(productId) {
+  const token = getToken()
+  const res = await fetch(`${API_BASE_URL}/admin/products/${productId}`, {
+    method: 'DELETE',
+    headers: {
+      'Authorization': `Bearer ${token}`
+    }
+  })
+  if (!res.ok) {
+    const errText = await res.text()
+    throw new Error('Ошибка удаления товара: ' + errText)
   }
   return await res.json()
 }
