@@ -66,25 +66,25 @@
     </el-button>
   </el-header>
 
-  <div class="header-mobile-actions" v-if="isMobile">
-    <el-button
-      class="burger-btn"
-      type="default"
-      @click="drawer = true"
-    >
-    <!-- <el-icon><Menu /></el-icon> -->
-    <el-icon><DArrowRight /></el-icon>
+<div class="header-mobile-actions" v-if="isMobile">
+  <button class="burger-btn custom-burger" @click="drawer = true" aria-label="Открыть меню">
+    <svg viewBox="0 0 64 64" width="40" height="40">
+      <circle cx="32" cy="32" r="32" fill="#222" />
+      <rect x="16" y="20" width="32" height="5" rx="2.5" fill="#fff"/>
+      <rect x="16" y="29.5" width="32" height="5" rx="2.5" fill="#fff"/>
+      <rect x="16" y="39" width="32" height="5" rx="2.5" fill="#fff"/>
+    </svg>
+  </button>
+  <div style="flex: 1"></div>
+  <el-button
+    type="primary"
+    class="header-cart-btn"
+    round
+    @click="$router.push('/cart')"
+  >
+    <el-icon><ShoppingCartFull /></el-icon>
   </el-button>
-    <div style="flex: 1"></div>
-    <el-button
-      type="primary"
-      class="header-cart-btn"
-      round
-      @click="$router.push('/cart')"
-    >
-      <el-icon><ShoppingCartFull /></el-icon>
-    </el-button>
-  </div>
+</div>
 
   <div class="nav-menu">
     <el-button link class="nav-link" @click="$router.push('/')" :class="{active: isActive('/')}">
@@ -472,7 +472,7 @@ const loginModal = ref(false)
   }
   .header-phone,
   .header-user {
-    font-size: 13px;
+    font-size: 17px;
     margin: 0;
   }
   .header-spacer,
@@ -526,6 +526,23 @@ const loginModal = ref(false)
   .menu-btn {
     display: none !important;
   }
+  .burger-btn.custom-burger {
+  all: unset;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  cursor: pointer;
+  width: 44px;
+  height: 44px;
+  margin-right: 0;
+  margin-left: 4px;
+  transition: box-shadow .14s;
+  box-shadow: 0 2px 7px rgba(40,40,40,0.08);
+}
+.burger-btn.custom-burger:active {
+  box-shadow: 0 4px 12px rgba(40,40,40,0.18);
+}
 }
 
 @media (max-width: 410px) {
