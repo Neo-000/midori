@@ -112,4 +112,24 @@ router.delete('/products/:id', adminAuth, async (req, res) => {
   }
 })
 
+router.get('/orders', adminAuth, async (req, res) => {
+  try {
+    const orders = await Order.find({}).sort({ createdAt: -1 }).populate('products.product')
+    res.json(orders)
+  } catch (e) {
+    res.status(500).json({ message: 'Ошибка сервера' })
+  }
+})
+
+// Обновить статус заказа
+router.put('/orders/:id', adminAuth, async (req, res) => {
+  try {
+    const { status } = req.body
+    const order = await Order.findByIdAndUpdate(req.params.id, { status }, { new: true })
+    res.json(order)
+  } catch (e) {
+    res.status(500).json({ message: 'Ошибка сервера' })
+  }
+})
+
 module.exports = router

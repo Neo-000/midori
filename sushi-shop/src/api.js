@@ -173,3 +173,28 @@ export async function deleteProductApi(productId) {
   }
   return await res.json()
 }
+
+
+export async function getOrdersApi() {
+  const token = getToken()
+  const res = await fetch(`${API_BASE_URL}/admin/orders`, {
+    headers: { 'Authorization': `Bearer ${token}` }
+  })
+  if (!res.ok) throw new Error('Ошибка получения заказов')
+  return await res.json()
+}
+
+// Обновить статус заказа
+export async function updateOrderStatusApi(orderId, status) {
+  const token = getToken()
+  const res = await fetch(`${API_BASE_URL}/admin/orders/${orderId}`, {
+    method: 'PUT',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ status })
+  })
+  if (!res.ok) throw new Error('Ошибка обновления статуса')
+  return await res.json()
+}

@@ -1,12 +1,14 @@
-<template>
+<template> 
   <div class="admin-page">
     <h2 class="admin-title">Панель администратора</h2>
     <div class="admin-tabs">
       <button :class="{active: tab === 'categories'}" @click="tab = 'categories'">Категории</button>
       <button :class="{active: tab === 'products'}" @click="tab = 'products'">Товары</button>
+      <button :class="{active: tab === 'orders'}" @click="tab = 'orders'">Заказы</button>
     </div>
     <CategoriesAdmin v-if="tab === 'categories'" />
-    <ProductsAdmin v-else />
+    <ProductsAdmin v-else-if="tab === 'products'" />
+    <OrdersAdmin v-else />
   </div>
 </template>
 
@@ -14,6 +16,7 @@
 import { ref } from 'vue'
 import CategoriesAdmin from '../components/CategoriesAdmin.vue'
 import ProductsAdmin from '../components/ProductsAdmin.vue'
+import OrdersAdmin from '../components/OrdersAdmin.vue'
 
 const tab = ref('categories')
 </script>

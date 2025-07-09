@@ -2,10 +2,17 @@ const Order = require('../models/Order')
 
 // Получить все заказы (только для админа)
 exports.getAll = async (req, res) => {
-  const orders = await Order.find().populate('user').populate('products.product')
-  res.json(orders)
+  try {
+    const orders = await Order.find()
+      .populate('user')
+      .populate('products.product')
+    res.json(orders)
+  } catch (err) {
+    // ВЫВОД ошибки в консоль сервера:
+    console.error('ORDER GETALL ERROR:', err)
+    res.status(500).json({ message: 'Ошибка получения заказов', error: err.message })
+  }
 }
-
 // Получить свои заказы (для пользователя)
 exports.getMy = async (req, res) => {
   const orders = await Order.find({ user: req.user.userId }).populate('products.product')
