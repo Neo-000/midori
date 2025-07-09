@@ -1,4 +1,5 @@
 module.exports = function (req, res, next) {
+  console.log('ADMIN MIDDLEWARE:', req.user)
     if (req.user && req.user.role === 'admin') {
       return next()
     }

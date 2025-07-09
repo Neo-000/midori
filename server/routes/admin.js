@@ -5,9 +5,16 @@ const multer = require('multer')
 const path = require('path')
 const Category = require('../models/Category')
 const Product = require('../models/Product')
+const Order = require('../models/Order')
 const { adminAuth } = require('../middlewares/adminAuth')
 
 const router = express.Router()
+
+
+router.use((req, res, next) => {
+  console.log('--- ADMIN ROUTE HIT ---', req.method, req.originalUrl)
+  next()
+})
 
 // --- Настройка хранения файлов (multer) ---
 const storage = multer.diskStorage({
@@ -133,3 +140,4 @@ router.put('/orders/:id', adminAuth, async (req, res) => {
 })
 
 module.exports = router
+ 

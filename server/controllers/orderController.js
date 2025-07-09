@@ -3,14 +3,12 @@ const Order = require('../models/Order')
 // Получить все заказы (только для админа)
 exports.getAll = async (req, res) => {
   try {
-    const orders = await Order.find()
-      .populate('user')
-      .populate('products.product')
+    console.log('= getAll ORDERS, user:', req.user); // <--- Логируем!
+    const orders = await Order.find().populate('user').populate('products.product')
     res.json(orders)
   } catch (err) {
-    // ВЫВОД ошибки в консоль сервера:
-    console.error('ORDER GETALL ERROR:', err)
-    res.status(500).json({ message: 'Ошибка получения заказов', error: err.message })
+    console.error('ORDERS GETALL ERROR:', err); // <-- Логируем ошибку!
+    res.status(500).json({ message: 'Ошибка на сервере: ' + err.message })
   }
 }
 // Получить свои заказы (для пользователя)
