@@ -1,13 +1,13 @@
 <template>
   <el-card shadow="hover" class="product-card">
     <img
-      :src="product.img || '/src/assets/default-dish.png'"
+      :src="getImgUrl(product.image)"
       class="product-image"
-      :alt="product.name"
+      :alt="product.title"
     />
     <div class="product-info">
-      <div class="product-title">{{ product.name }}</div>
-      <div class="product-desc">{{ product.desc }}</div>
+      <div class="product-title">{{ product.title }}</div>
+      <div class="product-desc">{{ product.description }}</div>
       <div class="product-meta">
         <span class="product-weight">{{ product.weight }}</span>
         <span class="product-price">{{ product.price }} ₽</span>
@@ -20,9 +20,19 @@
 </template>
 
 <script setup>
-defineProps({
+import { STATIC_BASE_URL } from '../constants'
+
+const props = defineProps({
   product: Object
 })
+
+// Возвращает правильный путь до картинки
+function getImgUrl(img) {
+  if (!img) return '/src/assets/default-dish.png'
+  if (img.startsWith('/uploads')) return STATIC_BASE_URL + img
+  if (img.startsWith('http')) return img
+  return STATIC_BASE_URL + '/uploads/' + img
+}
 </script>
 
 <style scoped>

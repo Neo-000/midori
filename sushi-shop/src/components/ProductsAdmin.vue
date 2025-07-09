@@ -1,60 +1,8 @@
-<template>
-  <div class="products-admin">
-    <div class="products-header">
-      <div class="category-filter">
-        <span>Выберите категорию</span>
-        <select v-model="selectedCatId" @change="loadProducts">
-          <option value="">Все категории</option>
-          <option v-for="cat in categories" :key="cat._id" :value="cat._id">{{ cat.name }}</option>
-        </select>
-      </div>
-      <button class="add-product-btn" @click="showModal = true">
-        Новый товар <span>+</span>
-      </button>
-    </div>
-    <div class="products-list">
-      <div v-for="prod in products" :key="prod._id" class="product-card">
-        <img v-if="prod.image" :src="prod.image" class="prod-img" />
-        <div class="prod-info">
-          <div class="prod-title-row">
-            <b>{{ prod.title }}</b>
-            <span class="prod-weight">{{ prod.weight ? prod.weight + ' г' : '' }}</span>
-          </div>
-          <div class="prod-desc">{{ prod.description }}</div>
-          <div class="prod-price">{{ prod.price }} ₽</div>
-        </div>
-        <div class="prod-actions">
-          <button @click="editProduct(prod)">✏️</button>
-          <button @click="deleteProduct(prod)">🗑️</button>
-        </div>
-      </div>
-    </div>
-    <!-- Модалка для добавления/редактирования товара -->
-    <div v-if="showModal" class="modal-backdrop" @click.self="closeModal">
-      <div class="modal-window">
-        <h4>{{ editMode ? 'Редактировать' : 'Добавить' }} товар</h4>
-        <form @submit.prevent="saveProduct">
-          <input v-model="modalTitle" placeholder="Название" required />
-          <input v-model="modalPrice" placeholder="Цена" type="number" required />
-          <input v-model="modalWeight" placeholder="Вес (грамм)" type="number" />
-          <textarea v-model="modalDesc" placeholder="Описание"></textarea>
-          <select v-model="modalCategory">
-            <option v-for="cat in categories" :key="cat._id" :value="cat._id">{{ cat.name }}</option>
-          </select>
-          <input type="file" @change="onFileChange" />
-          <div class="modal-btns">
-            <button type="submit">{{ editMode ? 'Сохранить' : 'Добавить' }}</button>
-            <button type="button" @click="closeModal">Отмена</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
-</template>
-
 <script setup>
 import { ref, onMounted, watch } from 'vue'
 import { getCategories, getProducts, addProductApi, updateProductApi, deleteProductApi } from '../api'
+import { API_BASE_URL } from '../constants' // ← обязательно импортируй!
+import { STATIC_BASE_URL } from '../constants' // ← обязательно импортируй!
 
 const categories = ref([])
 const products = ref([])
@@ -137,7 +85,70 @@ async function deleteProduct(prod) {
     await loadProducts()
   }
 }
+
+// ⬇️ Хелпер чтобы показывать картинки правильно
+function getImageUrl(image) {
+  if (!image) return ''
+  if (image.startsWith('http')) return image
+  // если путь без /uploads, добавь слэш
+  if (!image.startsWith('/')) image = '/' + image
+  return STATIC_BASE_URL + image
+}
 </script>
+
+<template>
+  <div class="products-admin">
+    <div class="products-header">
+      <div class="category-filter">
+        <span>Выберите категорию</span>
+        <select v-model="selectedCatId" @change="loadProducts">
+          <option value="">Все категории</option>
+          <option v-for="cat in categories" :key="cat._id" :value="cat._id">{{ cat.name }}</option>
+        </select>
+      </div>
+      <button class="add-product-btn" @click="showModal = true">
+        Новый товар <span>+</span>
+      </button>
+    </div>
+    <div class="products-list">
+      <div v-for="prod in products" :key="prod._id" class="product-card">
+        <img v-if="prod.image" :src="getImageUrl(prod.image)" class="prod-img" />
+        <div class="prod-info">
+          <div class="prod-title-row">
+            <b>{{ prod.title }}</b>
+            <span class="prod-weight">{{ prod.weight ? prod.weight + ' г' : '' }}</span>
+          </div>
+          <div class="prod-desc">{{ prod.description }}</div>
+          <div class="prod-price">{{ prod.price }} ₽</div>
+        </div>
+        <div class="prod-actions">
+          <button @click="editProduct(prod)">✏️</button>
+          <button @click="deleteProduct(prod)">🗑️</button>
+        </div>
+      </div>
+    </div>
+    <!-- Модалка для добавления/редактирования товара -->
+    <div v-if="showModal" class="modal-backdrop" @click.self="closeModal">
+      <div class="modal-window">
+        <h4>{{ editMode ? 'Редактировать' : 'Добавить' }} товар</h4>
+        <form @submit.prevent="saveProduct">
+          <input v-model="modalTitle" placeholder="Название" required />
+          <input v-model="modalPrice" placeholder="Цена" type="number" required />
+          <input v-model="modalWeight" placeholder="Вес (грамм)" type="number" />
+          <textarea v-model="modalDesc" placeholder="Описание"></textarea>
+          <select v-model="modalCategory">
+            <option v-for="cat in categories" :key="cat._id" :value="cat._id">{{ cat.name }}</option>
+          </select>
+          <input type="file" @change="onFileChange" />
+          <div class="modal-btns">
+            <button type="submit">{{ editMode ? 'Сохранить' : 'Добавить' }}</button>
+            <button type="button" @click="closeModal">Отмена</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</template>
 
 <style scoped>
 .products-header {
