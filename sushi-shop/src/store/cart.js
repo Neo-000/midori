@@ -1,13 +1,21 @@
 // src/store/cart.js
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 
 export const useCartStore = defineStore('cart', () => {
-  // Массив товаров в корзине
-  const items = ref([]) // [{ product: {...}, quantity: N }]
+  // Загрузка из localStorage при старте
+  const items = ref(
+    JSON.parse(localStorage.getItem('cart_items') || '[]')
+  )
+
+  // Сохраняем в localStorage при каждом изменении корзины
+  watch(items, (newVal) => {
+    localStorage.setItem('cart_items', JSON.stringify(newVal))
+  }, { deep: true })
 
   // Добавить товар (или увеличить количество)
   function add(product, quantity = 1) {
+    if (!product || !product._id) return // простая защита
     const found = items.value.find(item => item.product._id === product._id)
     if (found) {
       found.quantity += quantity
@@ -31,7 +39,7 @@ export const useCartStore = defineStore('cart', () => {
     items.value.reduce((sum, item) => sum + (item.product.price * item.quantity), 0)
   )
 
-  // Общее количество товаров (если нужно)
+  // Общее количество товаров
   const count = computed(() =>
     items.value.reduce((sum, item) => sum + item.quantity, 0)
   )

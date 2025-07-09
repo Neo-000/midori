@@ -12,7 +12,12 @@
         <span class="product-weight">{{ product.weight }}</span>
         <span class="product-price">{{ product.price }} ₽</span>
       </div>
-      <el-button type="primary" size="small" class="add-btn">
+      <el-button
+        type="primary"
+        size="small"
+        class="add-btn"
+        @click="addToCart"
+      >
         В корзину
       </el-button>
     </div>
@@ -21,10 +26,21 @@
 
 <script setup>
 import { STATIC_BASE_URL } from '../constants'
+import { useCartStore } from '../store/cart'
+import { ElMessage } from 'element-plus'
 
 const props = defineProps({
   product: Object
 })
+
+const cart = useCartStore()
+
+// Клик по кнопке "В корзину"
+function addToCart() {
+  cart.add(props.product)
+  // Показываем уведомление (опционально)
+  ElMessage.success('Добавлено в корзину!')
+}
 
 // Возвращает правильный путь до картинки
 function getImgUrl(img) {

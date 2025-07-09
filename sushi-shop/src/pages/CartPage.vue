@@ -10,7 +10,11 @@
         class="cart-item"
       >
         <span>{{ item.product.title }}</span>
-        <span>× {{ item.quantity }}</span>
+        <div class="cart-qty">
+          <button @click="decrement(item)">–</button>
+          <span>{{ item.quantity }}</span>
+          <button @click="increment(item)">+</button>
+        </div>
         <span>{{ item.product.price * item.quantity }} ₽</span>
         <button @click="cart.remove(item.product._id)">Удалить</button>
       </div>
@@ -39,18 +43,41 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useCartStore } from '../store/cart'
 import { createOrder } from '../api'
 import Container from '../components/Container.vue'
+import { useAuthStore } from '../store/auth'
 
 const cart = useCartStore()
+const auth = useAuthStore()
 const name = ref('')
 const phone = ref('')
 const address = ref('')
 const comment = ref('')
 const isLoading = ref(false)
 const orderSuccess = ref(false)
+
+// --- Автозаполнение формы если пользователь залогинен ---
+onMounted(() => {
+  if (auth.user) {
+    name.value = auth.user.name || ''
+    phone.value = auth.user.phone || ''
+    address.value = auth.user.address || ''
+  }
+})
+
+// --- Редактирование количества товаров ---
+function increment(item) {
+  cart.add(item.product, 1)
+}
+function decrement(item) {
+  if (item.quantity > 1) {
+    item.quantity--
+  } else {
+    cart.remove(item.product._id)
+  }
+}
 
 async function handleOrder() {
   isLoading.value = true
@@ -87,6 +114,26 @@ async function handleOrder() {
   align-items: center;
   padding: 12px 0;
   border-bottom: 1px solid #eee;
+}
+.cart-qty {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.cart-qty button {
+  background: #f3f5fb;
+  color: #409EFF;
+  border: 1px solid #d8e6f7;
+  border-radius: 5px;
+  width: 26px;
+  height: 26px;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.15s;
+}
+.cart-qty button:hover {
+  background: #e1efff;
 }
 .cart-total {
   font-size: 18px;
