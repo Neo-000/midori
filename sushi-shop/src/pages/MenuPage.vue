@@ -63,8 +63,11 @@ watch(() => route.query.category, async () => {
 }
 .product-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(275px, 1fr));
-  gap: 32px;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 2em 1.3em; /* по вертикали и горизонтали */
+  width: 100%;
+  margin: 0 auto;
+  /* Убери max-width если не хочешь центрирования */
 }
 .no-items {
   font-size: 18px;
