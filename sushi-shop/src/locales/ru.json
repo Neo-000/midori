@@ -6,7 +6,7 @@
   "profile": "Профиль",
   "login": "Войти",
   "logout": "Выйти",
-  "admin_panel": "Админ-панель",
+  "admin_panel": "Админ панель",
   "personal_cabinet": "Личный кабинет",
   "menu": "Меню",
   "phone": "+7 (900) 777-77-77",
@@ -97,7 +97,9 @@
   "delivery_payment_descr": "наличными курьеру или переводом на счёт",
   "delivery_order": "Оформление заказа:",
   "delivery_order_descr": "через сайт, Telegram или по телефону",
-  "delivery_questions": "Есть вопросы по доставке? Звоните и пишите!"
+  "delivery_questions": "Есть вопросы по доставке? Звоните и пишите!",
+  "categories": "Категории"
+
 
   
 }

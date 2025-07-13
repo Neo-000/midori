@@ -10,7 +10,6 @@ const { adminAuth } = require('../middlewares/adminAuth')
 
 const router = express.Router()
 
-
 router.use((req, res, next) => {
   console.log('--- ADMIN ROUTE HIT ---', req.method, req.originalUrl)
   next()
@@ -34,8 +33,13 @@ const upload = multer({ storage })
 // Добавить категорию
 router.post('/categories', adminAuth, upload.single('image'), async (req, res) => {
   try {
+    // !!! Парсим name если пришёл как строка (JSON)
+    let name = req.body.name
+    if (typeof name === 'string') {
+      try { name = JSON.parse(name) } catch { /* просто оставим строкой */ }
+    }
     const category = new Category({
-      name: req.body.name,
+      name,
       image: req.file ? `/uploads/${req.file.filename}` : undefined,
     })
     await category.save()
@@ -48,7 +52,11 @@ router.post('/categories', adminAuth, upload.single('image'), async (req, res) =
 // Обновить категорию
 router.put('/categories/:id', adminAuth, upload.single('image'), async (req, res) => {
   try {
-    const update = { name: req.body.name }
+    let name = req.body.name
+    if (typeof name === 'string') {
+      try { name = JSON.parse(name) } catch {}
+    }
+    const update = { name }
     if (req.file) update.image = `/uploads/${req.file.filename}`
 
     const cat = await Category.findByIdAndUpdate(req.params.id, update, { new: true })
@@ -74,17 +82,28 @@ router.delete('/categories/:id', adminAuth, async (req, res) => {
 // Добавить товар
 router.post('/products', adminAuth, upload.single('image'), async (req, res) => {
   try {
+    // !!! Парсим title/description если пришли как строки
+    let title = req.body.title
+    let description = req.body.description
+    if (typeof title === 'string') {
+      try { title = JSON.parse(title) } catch {}
+    }
+    if (typeof description === 'string') {
+      try { description = JSON.parse(description) } catch {}
+    }
+
     const product = new Product({
-      title: req.body.title,
+      title,
       price: req.body.price,
       category: req.body.category,
-      description: req.body.description || '',
+      description,
       weight: req.body.weight,
       image: req.file ? `/uploads/${req.file.filename}` : undefined,
     })
     await product.save()
     res.json(product)
   } catch (e) {
+    console.error('Ошибка при добавлении товара:', e)
     res.status(500).json({ message: 'Ошибка сервера' })
   }
 })
@@ -92,11 +111,19 @@ router.post('/products', adminAuth, upload.single('image'), async (req, res) => 
 // Обновить товар
 router.put('/products/:id', adminAuth, upload.single('image'), async (req, res) => {
   try {
+    let title = req.body.title
+    let description = req.body.description
+    if (typeof title === 'string') {
+      try { title = JSON.parse(title) } catch {}
+    }
+    if (typeof description === 'string') {
+      try { description = JSON.parse(description) } catch {}
+    }
     const update = {
-      title: req.body.title,
+      title,
       price: req.body.price,
       category: req.body.category,
-      description: req.body.description,
+      description,
       weight: req.body.weight,
     }
     if (req.file) update.image = `/uploads/${req.file.filename}`
@@ -105,6 +132,7 @@ router.put('/products/:id', adminAuth, upload.single('image'), async (req, res) 
     if (!prod) return res.status(404).json({ message: 'Товар не найден' })
     res.json(prod)
   } catch (e) {
+    console.error('Ошибка при обновлении товара:', e)
     res.status(500).json({ message: 'Ошибка сервера' })
   }
 })
@@ -140,4 +168,3 @@ router.put('/orders/:id', adminAuth, async (req, res) => {
 })
 
 module.exports = router
- 

@@ -1,16 +1,5 @@
 <template>
   <div class="delivery-page">
-    <div class="city-road-wrap">
-      <!-- Фон города — background, а не <svg>! -->
-      <div :class="['city-bg', { 'city-bg-moving': bgMoving }]" />
-      <!-- Машинка -->
-      <transition name="car-anim">
-        <div v-if="carVisible" class="car-anim-over-road">
-          <!-- ... SVG как есть ... -->
-          <!-- SVG не трогал -->
-        </div>
-      </transition>
-    </div>
     <div class="delivery-content">
       <h1>{{ $t('delivery_title') }}</h1>
       <p>

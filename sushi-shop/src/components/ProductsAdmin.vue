@@ -1,8 +1,10 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue'
 import { getCategories, getProducts, addProductApi, updateProductApi, deleteProductApi } from '../api'
-import { API_BASE_URL } from '../constants' // ← обязательно импортируй!
-import { STATIC_BASE_URL } from '../constants' // ← обязательно импортируй!
+import { STATIC_BASE_URL } from '../constants'
+import { useI18n } from 'vue-i18n'
+
+const { t, locale } = useI18n()
 
 const categories = ref([])
 const products = ref([])
@@ -11,11 +13,13 @@ const showModal = ref(false)
 const editMode = ref(false)
 const editProductId = ref(null)
 
-// Поля для формы модалки
-const modalTitle = ref('')
+// Поля для мультиязычной формы
+const modalTitleRu = ref('')
+const modalTitleRs = ref('')
 const modalPrice = ref('')
 const modalWeight = ref('')
-const modalDesc = ref('')
+const modalDescRu = ref('')
+const modalDescRs = ref('')
 const modalCategory = ref('')
 const modalFile = ref(null)
 
@@ -31,14 +35,31 @@ onMounted(async () => {
 })
 watch(selectedCatId, loadProducts)
 
+// Вот эта реактивная реакция на смену языка — чтобы UI обновлялся сразу
+watch(locale, () => {
+  // если API не зависит от языка, то можно не грузить, Vue обновит всё сам
+  // если нужно перезагрузить продукты с сервера при смене языка, раскомментируй:
+  // loadProducts()
+})
+
+// Хелперы для вывода текста на текущем языке
+function getProductTitle(prod) {
+  return prod.title?.[locale.value] || prod.title?.ru || prod.title || ''
+}
+function getProductDesc(prod) {
+  return prod.description?.[locale.value] || prod.description?.ru || prod.description || ''
+}
+
 function closeModal() {
   showModal.value = false
   editMode.value = false
   editProductId.value = null
-  modalTitle.value = ''
+  modalTitleRu.value = ''
+  modalTitleRs.value = ''
   modalPrice.value = ''
   modalWeight.value = ''
-  modalDesc.value = ''
+  modalDescRu.value = ''
+  modalDescRs.value = ''
   modalCategory.value = categories.value[0]?._id || ''
   modalFile.value = null
 }
@@ -49,48 +70,42 @@ function editProduct(prod) {
   editMode.value = true
   showModal.value = true
   editProductId.value = prod._id
-  modalTitle.value = prod.title
+  modalTitleRu.value = prod.title?.ru || ''
+  modalTitleRs.value = prod.title?.rs || ''
   modalPrice.value = prod.price
   modalWeight.value = prod.weight || ''
-  modalDesc.value = prod.description || ''
-  modalCategory.value = prod.category || categories.value[0]?._id
+  modalDescRu.value = prod.description?.ru || ''
+  modalDescRs.value = prod.description?.rs || ''
+  modalCategory.value = prod.category?._id || prod.category || categories.value[0]?._id
 }
 async function saveProduct() {
-  if (!modalTitle.value || !modalPrice.value || !modalCategory.value) return
+  if (!modalTitleRu.value || !modalPrice.value || !modalCategory.value) return
+  const data = {
+    title: { ru: modalTitleRu.value, rs: modalTitleRs.value },
+    price: modalPrice.value,
+    weight: modalWeight.value,
+    description: { ru: modalDescRu.value, rs: modalDescRs.value },
+    category: modalCategory.value,
+  }
+  const file = modalFile.value
+
   if (editMode.value) {
-    await updateProductApi(editProductId.value, {
-      title: modalTitle.value,
-      price: modalPrice.value,
-      weight: modalWeight.value,
-      description: modalDesc.value,
-      category: modalCategory.value,
-      file: modalFile.value,
-    })
+    await updateProductApi(editProductId.value, data, file)
   } else {
-    await addProductApi({
-      title: modalTitle.value,
-      price: modalPrice.value,
-      weight: modalWeight.value,
-      description: modalDesc.value,
-      category: modalCategory.value,
-      file: modalFile.value,
-    })
+    await addProductApi(data, file)
   }
   closeModal()
   await loadProducts()
 }
 async function deleteProduct(prod) {
-  if (confirm(`Удалить товар "${prod.title}"?`)) {
+  if (confirm(`${t('remove')} "${getProductTitle(prod)}"?`)) {
     await deleteProductApi(prod._id)
     await loadProducts()
   }
 }
-
-// ⬇️ Хелпер чтобы показывать картинки правильно
 function getImageUrl(image) {
   if (!image) return ''
   if (image.startsWith('http')) return image
-  // если путь без /uploads, добавь слэш
   if (!image.startsWith('/')) image = '/' + image
   return STATIC_BASE_URL + image
 }
@@ -100,14 +115,16 @@ function getImageUrl(image) {
   <div class="products-admin">
     <div class="products-header">
       <div class="category-filter">
-        <span>Выберите категорию</span>
+        <span>{{ t('choose_category') }}</span>
         <select v-model="selectedCatId" @change="loadProducts">
-          <option value="">Все категории</option>
-          <option v-for="cat in categories" :key="cat._id" :value="cat._id">{{ cat.name }}</option>
+          <option value="">{{ t('all_categories') }}</option>
+          <option v-for="cat in categories" :key="cat._id" :value="cat._id">
+            {{ cat.name?.[locale.value] || cat.name?.ru || cat.name }}
+          </option>
         </select>
       </div>
       <button class="add-product-btn" @click="showModal = true">
-        Новый товар <span>+</span>
+        {{ t('add_product') }} <span>+</span>
       </button>
     </div>
     <div class="products-list">
@@ -115,11 +132,11 @@ function getImageUrl(image) {
         <img v-if="prod.image" :src="getImageUrl(prod.image)" class="prod-img" />
         <div class="prod-info">
           <div class="prod-title-row">
-            <b>{{ prod.title }}</b>
+            <b>{{ getProductTitle(prod) }}</b>
             <span class="prod-weight">{{ prod.weight ? prod.weight + ' г' : '' }}</span>
           </div>
-          <div class="prod-desc">{{ prod.description }}</div>
-          <div class="prod-price">{{ prod.price }} ₽</div>
+          <div class="prod-desc">{{ getProductDesc(prod) }}</div>
+          <div class="prod-price">{{ prod.price }} RSD</div>
         </div>
         <div class="prod-actions">
           <button @click="editProduct(prod)">✏️</button>
@@ -130,19 +147,23 @@ function getImageUrl(image) {
     <!-- Модалка для добавления/редактирования товара -->
     <div v-if="showModal" class="modal-backdrop" @click.self="closeModal">
       <div class="modal-window">
-        <h4>{{ editMode ? 'Редактировать' : 'Добавить' }} товар</h4>
+        <h4>{{ editMode ? t('edit_product_title') : t('add_product_title') }}</h4>
         <form @submit.prevent="saveProduct">
-          <input v-model="modalTitle" placeholder="Название" required />
-          <input v-model="modalPrice" placeholder="Цена" type="number" required />
-          <input v-model="modalWeight" placeholder="Вес (грамм)" type="number" />
-          <textarea v-model="modalDesc" placeholder="Описание"></textarea>
+          <input v-model="modalTitleRu" :placeholder="t('title') + ' (RU)'" required />
+          <input v-model="modalTitleRs" :placeholder="t('title') + ' (SR)'" required />
+          <input v-model="modalPrice" :placeholder="t('price')" type="number" required />
+          <input v-model="modalWeight" :placeholder="t('weight')" type="number" />
+          <textarea v-model="modalDescRu" :placeholder="t('description') + ' (RU)'"></textarea>
+          <textarea v-model="modalDescRs" :placeholder="t('description') + ' (SR)'"></textarea>
           <select v-model="modalCategory">
-            <option v-for="cat in categories" :key="cat._id" :value="cat._id">{{ cat.name }}</option>
+            <option v-for="cat in categories" :key="cat._id" :value="cat._id">
+              {{ cat.name?.[locale.value] || cat.name?.ru || cat.name }}
+            </option>
           </select>
           <input type="file" @change="onFileChange" />
           <div class="modal-btns">
-            <button type="submit">{{ editMode ? 'Сохранить' : 'Добавить' }}</button>
-            <button type="button" @click="closeModal">Отмена</button>
+            <button type="submit">{{ editMode ? t('save') : t('add') }}</button>
+            <button type="button" @click="closeModal">{{ t('cancel') }}</button>
           </div>
         </form>
       </div>

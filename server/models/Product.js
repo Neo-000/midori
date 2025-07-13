@@ -4,7 +4,7 @@ const ProductSchema = new mongoose.Schema({
   title: {
     ru: { type: String, required: true },
     rs: { type: String, required: true },
-    // en: { type: String } // Если когда-нибудь понадобится английский — просто раскомментируй
+    // en: { type: String } //
   },
   description: {
     ru: { type: String, default: '' },

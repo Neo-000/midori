@@ -97,7 +97,8 @@
   "delivery_payment_descr": "готовином куриру или уплатом на рачун",
   "delivery_order": "Поруџбина:",
   "delivery_order_descr": "преко сајта, Telegram-а или телефоном",
-  "delivery_questions": "Имате питања око доставе? Позовите нас или пишите!"
+  "delivery_questions": "Имате питања око доставе? Позовите нас или пишите!",
+  "categories": "Категорије"
 
   
 }

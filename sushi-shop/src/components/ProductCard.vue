@@ -4,23 +4,25 @@
       <img
         :src="getImgUrl(product.image)"
         class="product-image"
-        :alt="product.title"
+        :alt="product.title?.[locale] || product.title?.ru || product.title"
       />
     </div>
     <div class="product-info">
       <div>
         <div class="product-title">
-          {{ product.title }}
+          {{ product.title?.[locale] || product.title?.ru || product.title }}
           <span class="product-weight" v-if="product.weight">
             {{ product.weight }} г
           </span>
         </div>
-        <div class="product-desc">{{ product.description }}</div>
+        <div class="product-desc">
+          {{ product.description?.[locale] || product.description?.ru || product.description }}
+        </div>
       </div>
       <div class="product-bottom">
-        <span class="product-price">{{ product.price }} ₽</span>
+        <span class="product-price">{{ product.price }} RSD</span>
         <button class="add-btn" @click="addToCart">
-          В корзину
+          {{ $t('cart') }}
         </button>
       </div>
     </div>
@@ -31,13 +33,15 @@
 import { STATIC_BASE_URL } from '../constants'
 import { useCartStore } from '../store/cart'
 import { ElMessage } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 
+const { locale, t } = useI18n()
 const props = defineProps({ product: Object })
 const cart = useCartStore()
 
 function addToCart() {
   cart.add(props.product)
-  ElMessage.success('Добавлено в корзину!')
+  ElMessage.success(t('added_to_cart') || 'Добавлено в корзину!')
 }
 
 function getImgUrl(img) {

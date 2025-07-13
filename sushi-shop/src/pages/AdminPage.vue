@@ -1,10 +1,10 @@
 <template> 
   <div class="admin-page">
-    <h2 class="admin-title">Панель администратора</h2>
+    <h2 class="admin-title">{{ $t('admin_panel') }}</h2>
     <div class="admin-tabs">
-      <button :class="{active: tab === 'categories'}" @click="tab = 'categories'">Категории</button>
-      <button :class="{active: tab === 'products'}" @click="tab = 'products'">Товары</button>
-      <button :class="{active: tab === 'orders'}" @click="tab = 'orders'">Заказы</button>
+      <button :class="{active: tab === 'categories'}" @click="tab = 'categories'">{{ $t('categories') }}</button>
+      <button :class="{active: tab === 'products'}" @click="tab = 'products'">{{ $t('products') }}</button>
+      <button :class="{active: tab === 'orders'}" @click="tab = 'orders'">{{ $t('orders') }}</button>
     </div>
     <CategoriesAdmin v-if="tab === 'categories'" />
     <ProductsAdmin v-else-if="tab === 'products'" />
