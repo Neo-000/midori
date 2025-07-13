@@ -147,3 +147,30 @@ export async function updateOrderStatusApi(orderId, status) {
   if (!res.ok) throw new Error(await res.text())
   return await res.json()
 }
+
+// ---------- ЛИЧНЫЙ КАБИНЕТ: МОИ ЗАКАЗЫ ----------
+
+export async function getMyOrdersApi() {
+  const token = getToken()
+  const res = await fetch(`${API_BASE_URL}/orders/my`, {
+    headers: { 'Authorization': `Bearer ${token}` }
+  })
+  if (!res.ok) throw new Error(await res.text())
+  return await res.json()
+}
+
+// ---------- ЛИЧНЫЙ КАБИНЕТ: ОБНОВИТЬ ПРОФИЛЬ ----------
+
+export async function updateProfileApi(profile) {
+  const token = getToken()
+  const res = await fetch(`${API_BASE_URL}/profile`, {
+    method: 'PUT',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(profile)
+  })
+  if (!res.ok) throw new Error(await res.text())
+  return await res.json()
+}

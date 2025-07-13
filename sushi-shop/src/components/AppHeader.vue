@@ -3,6 +3,14 @@
     <div class="topbar-left">
       <el-icon><Location /></el-icon>
       <span>{{ $t('delivery') }}</span>
+      <!-- Кнопка выбрать адрес -->
+      <el-button
+        link
+        style="margin-left:12px;font-size:15px;padding:0"
+        @click="addressModal = true"
+      >
+        {{ selectedAddress ? selectedAddress : $t('choose_address') }}
+      </el-button>
     </div>
     <div class="topbar-right">
       <img :src="flagSrc(currentLocale)" height="16" style="margin-right:5px;" />
@@ -160,6 +168,12 @@
     </el-menu>
   </el-drawer>
 
+  <!-- Модалка выбора адреса -->
+  <ModalAddress
+    v-model="addressModal"
+    @addressSelected="onAddressSelected"
+  />
+
   <!-- Модалка авторизации -->
   <LoginModal v-model="loginModal" />
 </template>
@@ -169,16 +183,14 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ShoppingCartFull, User, Menu, Location } from '@element-plus/icons-vue'
 import LoginModal from './LoginModal.vue'
+import ModalAddress from './ModalAdress.vue' // Подключи модалку адреса!
 import { getCategories } from '../api'
 import { useAuthStore } from '../store/auth'
 import { useI18n } from 'vue-i18n'
 
 const auth = useAuthStore()
-
-// Только два языка!
 const locales = ['ru', 'rs']
 const currentLocale = ref('ru')
-
 const { locale } = useI18n()
 
 function flagSrc(lang) {
@@ -188,7 +200,7 @@ function flagSrc(lang) {
 }
 function changeLocale(loc) {
   currentLocale.value = loc
-  locale.value = loc // переключает vue-i18n язык!
+  locale.value = loc
 }
 
 const route = useRoute()
@@ -203,6 +215,8 @@ async function loadCategories() {
 onMounted(() => {
   window.addEventListener('resize', handleResize)
   loadCategories()
+  // При инициализации вытаскиваем адрес из localStorage
+  selectedAddress.value = localStorage.getItem('selectedAddress') || ''
 })
 onUnmounted(() => {
   window.removeEventListener('resize', handleResize)
@@ -226,10 +240,22 @@ function onDrawerSelect(catId) {
 }
 
 const loginModal = ref(false)
+
+// --------- Выбор адреса ----------
+const addressModal = ref(false)
+const selectedAddress = ref('')
+
+function onAddressSelected(addrObj) {
+  // Собираем строку (можно и по-своему)
+  let str = addrObj.city
+  if (addrObj.street) str += ', ' + addrObj.street
+  if (addrObj.house) str += ' ' + addrObj.house
+  if (addrObj.apartment) str += ', кв.' + addrObj.apartment
+  if (addrObj.entrance) str += ', подъезд ' + addrObj.entrance
+  selectedAddress.value = str
+  localStorage.setItem('selectedAddress', str)
+}
 </script>
-
-
-
 
 
  <style scoped>

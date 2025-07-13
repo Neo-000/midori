@@ -23,6 +23,7 @@ app.use('/api/categories', categoryRoutes)
 app.use('/api/products', productRoutes)
 app.use('/api/orders', orderRoutes)
 app.use('/api/upload', uploadRoutes)
+app.use('/api/profile', require('./routes/profile'))
 app.use('/api/admin', require('./routes/admin'))
 
 // Тестовый рут

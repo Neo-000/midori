@@ -1,4 +1,4 @@
-<template>
+<template> 
   <Container>
     <div class="product-list-title">
       <h1 v-if="!currentCategory">{{ $t('all_categories') }}</h1>
@@ -23,21 +23,27 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { getCategories, getProducts } from '../api'
+import { useI18n } from 'vue-i18n'
 import ProductCard from '../components/ProductCard.vue'
 import Container from '../components/Container.vue'
 
 const route = useRoute()
+const { locale } = useI18n()
 
 const categories = ref([])
 const products = ref([])
 
 const currentCategory = computed(() => route.query.category || null)
 
-// Получаем имя текущей категории для вывода в заголовке
+// Корректная локализация названия категории!
 const currentCategoryName = computed(() => {
   if (!currentCategory.value) return ''
   const cat = categories.value.find(c => c._id === currentCategory.value)
-  return cat ? cat.name : ''
+  if (!cat) return ''
+  if (typeof cat.name === 'object' && cat.name !== null) {
+    return cat.name[locale.value] || cat.name.ru || ''
+  }
+  return cat.name || ''
 })
 
 async function loadCategories() {

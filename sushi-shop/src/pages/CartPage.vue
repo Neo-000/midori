@@ -9,7 +9,8 @@
         :key="item.product._id"
         class="cart-item"
       >
-        <span>{{ item.product.title }}</span>
+        <!-- МУЛЬТИЯЗЫЧНОЕ НАЗВАНИЕ ТОВАРА -->
+        <span>{{ localizedTitle(item.product) }}</span>
         <div class="cart-qty">
           <button @click="decrement(item)">–</button>
           <span>{{ item.quantity }}</span>
@@ -65,8 +66,20 @@ const orderSuccess = ref(false)
 
 // Динамический вывод валюты по локали
 const currencySign = computed(() => {
-  return locale.value === 'rs' ? 'дин.' : '₽'
+  return locale.value === 'rs' ? 'дин.' : 'дин'
 })
+
+// МУЛЬТИЯЗЫЧНАЯ ФУНКЦИЯ ДЛЯ НАЗВАНИЯ ТОВАРА
+function localizedTitle(product) {
+  if (!product.title) return ''
+  return product.title[locale.value] || product.title.ru || ''
+}
+
+// Если надо выводить описание — аналогичная функция:
+// function localizedDescription(product) {
+//   if (!product.description) return ''
+//   return product.description[locale.value] || product.description.ru || ''
+// }
 
 // --- Автозаполнение формы если пользователь залогинен ---
 onMounted(() => {

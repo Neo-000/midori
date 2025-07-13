@@ -41,7 +41,7 @@ const cart = useCartStore()
 
 function addToCart() {
   cart.add(props.product)
-  ElMessage.success(t('added_to_cart') || 'Добавлено в корзину!')
+  ElMessage.success(t('Добавлено в корзину!') || 'Добавлено в корзину!')
 }
 
 function getImgUrl(img) {
