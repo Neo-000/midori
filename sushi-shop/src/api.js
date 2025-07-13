@@ -174,3 +174,11 @@ export async function updateProfileApi(profile) {
   if (!res.ok) throw new Error(await res.text())
   return await res.json()
 }
+export async function getProfileApi() {
+  const token = getToken()
+  const res = await fetch(`${API_BASE_URL}/profile`, {
+    headers: { 'Authorization': `Bearer ${token}` }
+  })
+  if (!res.ok) throw new Error(await res.text())
+  return await res.json()
+}

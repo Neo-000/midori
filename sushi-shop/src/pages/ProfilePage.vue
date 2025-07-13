@@ -24,7 +24,7 @@
         </button>
       </div>
       <div class="cabinet-row">
-        <label class="cabinet-label">{{ t('phone') }}</label>
+        <label class="cabinet-label">{{ t('phonee') }}</label>
         <input v-model="editData.phone" :readonly="!editPhone" />
         <button class="icon-btn" @click="editPhone = true" v-if="!editPhone">
           <i class="icon-edit"></i>
@@ -85,7 +85,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useAuthStore } from '../store/auth'
-import { getMyOrdersApi, updateProfileApi } from '../api'
+import { getMyOrdersApi, updateProfileApi, getProfileApi } from '../api'
 import { useI18n } from 'vue-i18n'
 
 const { t, locale } = useI18n()
@@ -106,11 +106,24 @@ const orders = ref([])
 const loadingOrders = ref(true)
 
 onMounted(async () => {
-  profile.value.name = authStore.user?.name || ''
-  profile.value.phone = authStore.user?.phone || ''
-  profile.value.bonus = authStore.user?.bonus || 0
-  editData.value.name = profile.value.name
-  editData.value.phone = profile.value.phone
+  try {
+    // Всегда берём профиль из базы (всегда самый актуальный)
+    const user = await getProfileApi()
+    profile.value.name = user.name || ''
+    profile.value.phone = user.phone || ''
+    profile.value.bonus = user.bonus || 0
+    editData.value.name = profile.value.name
+    editData.value.phone = profile.value.phone
+    // заодно обновить authStore.user, чтобы всё приложение было в едином состоянии
+    authStore.user = { ...authStore.user, ...user }
+  } catch (e) {
+    // fallback, если что-то пошло не так
+    profile.value.name = authStore.user?.name || ''
+    profile.value.phone = authStore.user?.phone || ''
+    profile.value.bonus = authStore.user?.bonus || 0
+    editData.value.name = profile.value.name
+    editData.value.phone = profile.value.phone
+  }
 
   try {
     orders.value = await getMyOrdersApi()
@@ -145,7 +158,6 @@ const currencySign = computed(() => {
   return locale.value === 'rs' ? 'дин.' : '₽'
 })
 const bonusRules = computed(() => {
-  // Корректно обрабатываем как массив или строку (если в i18n вдруг строка)
   const rules = t('bonus_rules')
   return Array.isArray(rules) ? rules : [rules]
 })

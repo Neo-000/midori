@@ -1,13 +1,11 @@
 <template>
   <div class="topbar">
     <div class="topbar-left">
-      <el-icon><Location /></el-icon>
-      <span>{{ $t('delivery') }}</span>
-      <!-- Кнопка выбрать адрес -->
+      <el-icon class="nomob"><Location /></el-icon>
       <el-button
         link
-        style="margin-left:12px;font-size:15px;padding:0"
         @click="addressModal = true"
+        class="address-button-text"
       >
         {{ selectedAddress ? selectedAddress : $t('choose_address') }}
       </el-button>
@@ -259,6 +257,7 @@ function onAddressSelected(addrObj) {
 
 
  <style scoped>
+
 .topbar {
   display: flex;
   justify-content: space-between;
@@ -583,6 +582,30 @@ function onAddressSelected(addrObj) {
     gap: 8px;
     padding: 0 2px;
   }
+
+   /* Можно добавить в style любого компонента (scoped — ОК) */
+.address-button-text {
+  padding-left: 50px;
+  display: flex;
+  /* flex-wrap: wrap; */
+  /* flex-direction: column; */
+  /* background: white; */
+  max-width: 190px;          /* или сколько тебе нужно для мобильного */
+  /* overflow: hidden; */
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  /* display: inline-block;     чтобы работал ellipsis */
+  vertical-align: middle;
+  /* Дополнительно — уменьшаем шрифт если нужно */
+  font-size: 11px;
+}
+.nomob{
+  display: none;
+}
+/* .topbar-left{
+  display: flex;
+  flex-direction: column;
+} */
 }
 </style>
 

@@ -9,6 +9,16 @@
         :key="item.product._id"
         class="cart-item"
       >
+        <!-- МИНИ-КАРТИНКА -->
+        <img
+          v-if="item.product.image"
+          :src="getImageUrl(item.product.image)"
+          alt="img"
+          class="cart-img"
+        />
+        <!-- Если картинки нет -->
+        <div v-else class="cart-img cart-img--placeholder"></div>
+
         <!-- МУЛЬТИЯЗЫЧНОЕ НАЗВАНИЕ ТОВАРА -->
         <span>{{ localizedTitle(item.product) }}</span>
         <div class="cart-qty">
@@ -17,7 +27,9 @@
           <button @click="increment(item)">+</button>
         </div>
         <span>{{ item.product.price * item.quantity }} {{ currencySign }}</span>
-        <button @click="cart.remove(item.product._id)">{{ $t('remove') }}</button>
+        <button @click="cart.remove(item.product._id)">
+          {{ $t('remove') }}
+        </button>
       </div>
       <div class="cart-total">
         <b>{{ $t('total') }}</b> {{ cart.total }} {{ currencySign }}
@@ -66,31 +78,34 @@ const orderSuccess = ref(false)
 
 // Динамический вывод валюты по локали
 const currencySign = computed(() => {
-  return locale.value === 'rs' ? 'дин.' : 'дин'
+  return locale.value === 'rs' ? 'дин.' : '₽'
 })
 
-// МУЛЬТИЯЗЫЧНАЯ ФУНКЦИЯ ДЛЯ НАЗВАНИЯ ТОВАРА
 function localizedTitle(product) {
   if (!product.title) return ''
   return product.title[locale.value] || product.title.ru || ''
 }
 
-// Если надо выводить описание — аналогичная функция:
-// function localizedDescription(product) {
-//   if (!product.description) return ''
-//   return product.description[locale.value] || product.description.ru || ''
-// }
+// Формирует абсолютный путь к изображению товара
+function getImageUrl(image) {
+  if (!image) return ''
+  if (image.startsWith('http')) return image
+  return `/uploads/${image}`
+}
 
-// --- Автозаполнение формы если пользователь залогинен ---
 onMounted(() => {
   if (auth.user) {
     name.value = auth.user.name || ''
     phone.value = auth.user.phone || ''
     address.value = auth.user.address || ''
   }
+  // если нет в профиле — ищем в localStorage
+  if (!address.value) {
+    const addr = localStorage.getItem('selectedAddress')
+    if (addr) address.value = addr
+  }
 })
 
-// --- Редактирование количества товаров ---
 function increment(item) {
   cart.add(item.product, 1)
 }
@@ -118,6 +133,7 @@ async function handleOrder() {
     })
     orderSuccess.value = true
     cart.clear()
+    localStorage.setItem('selectedAddress', address.value)
     name.value = ''
     phone.value = ''
     address.value = ''
@@ -137,6 +153,19 @@ async function handleOrder() {
   align-items: center;
   padding: 12px 0;
   border-bottom: 1px solid #eee;
+}
+.cart-img {
+  width: 46px;
+  height: 46px;
+  object-fit: cover;
+  border-radius: 8px;
+  background: #f4f4f4;
+  margin-right: 10px;
+  flex-shrink: 0;
+}
+.cart-img--placeholder {
+  background: #e0e0e0;
+  display: inline-block;
 }
 .cart-qty {
   display: flex;
