@@ -129,7 +129,7 @@
             :key="cat._id"
             :command="cat._id"
           >
-            {{ cat.name }}
+            {{ cat.name[currentLocale] }}
           </el-dropdown-item>
         </el-dropdown-menu>
       </template>
@@ -155,7 +155,7 @@
         :key="cat._id"
         :index="cat._id"
       >
-        {{ cat.name }}
+        {{ cat.name[currentLocale] }}
       </el-menu-item>
     </el-menu>
   </el-drawer>

@@ -1,28 +1,28 @@
 <template>
   <div class="orders-admin">
-    <h3>Заказы</h3>
-    <div v-if="isLoading" class="loading">Загрузка...</div>
+    <h3>{{ $t('orders') }}</h3>
+    <div v-if="isLoading" class="loading">{{ $t('loading') }}</div>
     <div v-else>
       <table class="orders-table">
         <thead>
           <tr>
-            <th>ID</th>
-            <th>Статус</th>
-            <th>Покупатель</th>
-            <th>Телефон</th>
-            <th>Адрес</th>
-            <th>Товары</th>
-            <th>Сумма</th>
-            <th>Дата</th>
-            <th>Действия</th>
+            <th>{{ $t('id') }}</th>
+            <th>{{ $t('status') }}</th>
+            <th>{{ $t('buyer') }}</th>
+            <th>{{ $t('phonee') }}</th>
+            <th>{{ $t('address') }}</th>
+            <th>{{ $t('products') }}</th>
+            <th>{{ $t('total') }}</th>
+            <th>{{ $t('date') }}</th>
+            <th>{{ $t('actions') }}</th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="order in orders" :key="order._id">
-            <td>Заказ #{{ order._id.slice(-6) }}</td>
+            <td>{{ $t('order') }} #{{ order._id.slice(-6) }}</td>
             <td>
               <span :class="'status-badge status-' + order.status">
-                {{ statusText(order.status) }}
+                {{ $t(order.status) }}
               </span>
             </td>
             <td>
@@ -36,21 +36,21 @@
                 {{ item.product?.title }} × {{ item.quantity }}
               </div>
             </td>
-            <td><b>{{ order.total }} ₽</b></td>
+            <td><b>{{ order.total }} RSD</b></td>
             <td>{{ formatDate(order.createdAt) }}</td>
             <td>
               <select v-model="order.status" @change="updateStatus(order)">
-                <option value="pending">Ожидает</option>
-                <option value="accepted">Принят</option>
-                <option value="in_progress">В работе</option>
-                <option value="completed">Завершён</option>
-                <option value="canceled">Отменён</option>
+                <option value="pending">{{ $t('pending') }}</option>
+                <option value="accepted">{{ $t('accepted') }}</option>
+                <option value="in_progress">{{ $t('in_progress') }}</option>
+                <option value="completed">{{ $t('completed') }}</option>
+                <option value="canceled">{{ $t('canceled') }}</option>
               </select>
             </td>
           </tr>
         </tbody>
       </table>
-      <div v-if="!orders.length" class="empty">Нет заказов</div>
+      <div v-if="!orders.length" class="empty">{{ $t('no_orders') }}</div>
     </div>
   </div>
 </template>
@@ -58,20 +58,11 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { getOrdersApi, updateOrderStatusApi } from '../api'
+import { useI18n } from 'vue-i18n'
 
 const orders = ref([])
 const isLoading = ref(false)
-
-function statusText(status) {
-  switch (status) {
-    case 'pending': return 'Ожидает оплаты'
-    case 'accepted': return 'Принят'
-    case 'in_progress': return 'В работе'
-    case 'completed': return 'Завершён'
-    case 'canceled': return 'Отменён'
-    default: return status
-  }
-}
+const { t } = useI18n()
 
 function formatDate(date) {
   if (!date) return ''
@@ -83,7 +74,7 @@ async function loadOrders() {
   try {
     orders.value = await getOrdersApi()
   } catch (e) {
-    alert('Ошибка получения заказов')
+    alert(t('order_error'))
   }
   isLoading.value = false
 }
@@ -93,7 +84,7 @@ async function updateStatus(order) {
     await updateOrderStatusApi(order._id, order.status)
     // Можно добавить всплывающее уведомление об успешном обновлении
   } catch {
-    alert('Ошибка обновления статуса заказа')
+    alert(t('order_error'))
   }
 }
 
