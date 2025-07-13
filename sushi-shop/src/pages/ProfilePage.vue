@@ -1,19 +1,19 @@
 <template>
   <div class="cabinet">
     <h2>
-      Личный кабинет
+      {{ $t('personal_cabinet') }}
       <span class="avatar"><i class="icon-user"></i></span>
     </h2>
     <div class="cabinet-info">
       <label>
-        Имя
+        {{ $t('name') }}
         <input v-model="profile.name" :readonly="!editName" />
         <button @click="editName = !editName">
           <i class="icon-edit"></i>
         </button>
       </label>
       <label>
-        Телефон
+        {{ $t('phone') }}
         <input v-model="profile.phone" :readonly="!editPhone" />
         <button @click="editPhone = !editPhone">
           <i class="icon-edit"></i>
@@ -22,27 +22,23 @@
     </div>
 
     <div class="cabinet-bonus">
-      <span>Бонусный счёт: <b>{{ profile.bonus }}</b></span>
+      <span v-html="bonusAccountText"></span>
       <div class="bonus-bar">
         <div class="bonus-fill" :style="{width: profile.bonus + '%'}"></div>
         <span class="bonus-value">{{ profile.bonus }}</span>
       </div>
       <ul class="bonus-desc">
-        <li>💙 Бонусная система</li>
-        <li>— Начисляем бонусы за каждый заказ:<br>
-            до 1000 ₽ → <b>3%</b> бонусами<br>
-            1000-3000 ₽ → <b>5%</b> бонусами<br>
-            3000+ ₽ → <b>7%</b> бонусами
-        </li>
-        <li>— 1 бонус = 1 рубль.</li>
-        <li>— Бонусами можно оплатить до 30% следующего заказа.</li>
-        <li>— Чем больше сумма заказа — тем больше бонусов!</li>
+        <li>{{ $t('bonus_system') }}</li>
+        <li v-html="$t('bonus_rules')"></li>
+        <li>{{ $t('bonus_1rub') }}</li>
+        <li>{{ $t('bonus_next') }}</li>
+        <li>{{ $t('bonus_more') }}</li>
       </ul>
     </div>
 
     <div class="cabinet-orders">
-      <h3>История заказов:</h3>
-      <div v-if="loadingOrders">Загрузка...</div>
+      <h3>{{ $t('order_history') }}</h3>
+      <div v-if="loadingOrders">{{ $t('loading') }}</div>
       <div v-else>
         <table class="orders-history">
           <tbody>
@@ -55,27 +51,30 @@
                   <span v-if="item !== order.products[order.products.length - 1]">, </span>
                 </span>
               </td>
-              <td class="order-total">{{ order.total }} ₽</td>
+              <td class="order-total">{{ order.total }} {{ currencySign }}</td>
               <td class="order-status">
                 <span :class="'st st-' + order.status">
-                  <template v-if="order.status === 'completed'">✅ Доставлен</template>
-                  <template v-else-if="order.status === 'canceled'">❌ Отменён</template>
-                  <template v-else>🟢 В обработке</template>
+                  <template v-if="order.status === 'completed'">✅ {{ $t('delivered') }}</template>
+                  <template v-else-if="order.status === 'canceled'">❌ {{ $t('canceled') }}</template>
+                  <template v-else>🟢 {{ $t('in_progress') }}</template>
                 </span>
               </td>
             </tr>
           </tbody>
         </table>
-        <div v-if="!orders.length" class="orders-empty">Нет заказов</div>
+        <div v-if="!orders.length" class="orders-empty">{{ $t('no_orders') }}</div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useAuthStore } from '../store/auth'
 import { getMyOrdersApi, updateProfileApi } from '../api'
+import { useI18n } from 'vue-i18n'
+
+const { t, locale } = useI18n()
 
 const profile = ref({
   name: '',
@@ -87,12 +86,10 @@ const editPhone = ref(false)
 const orders = ref([])
 const loadingOrders = ref(true)
 
-// Импортируем пользователя из стора
 const authStore = useAuthStore()
 
 // Загрузка профиля и заказов
 onMounted(async () => {
-  // Предполагается, что профиль и бонусы есть в authStore
   profile.value.name = authStore.user?.name || ''
   profile.value.phone = authStore.user?.phone || ''
   profile.value.bonus = authStore.user?.bonus || 0
@@ -103,22 +100,29 @@ onMounted(async () => {
   loadingOrders.value = false
 })
 
-// Сохраняем изменения профиля (доработай под свою логику)
 async function saveProfile() {
   await updateProfileApi({ name: profile.value.name, phone: profile.value.phone })
   editName.value = false
   editPhone.value = false
 }
 
-// Форматируем дату заказа
 function orderDate(date) {
-  return new Date(date).toLocaleDateString('ru-RU')
+  return new Date(date).toLocaleDateString(locale.value === 'rs' ? 'sr-RS' : 'ru-RU')
 }
 
-// Сокращение ID (по желанию)
 function shortId(id) {
   return id ? id.slice(-4) : ''
 }
+
+// Динамический вывод валюты по локали
+const currencySign = computed(() => {
+  return locale.value === 'rs' ? 'дин.' : '₽'
+})
+
+// Текст для бонусного счёта с подстановкой
+const bonusAccountText = computed(() => {
+  return t('bonus_account', { bonus: profile.value.bonus })
+})
 </script>
 
 <style scoped>

@@ -1,6 +1,6 @@
 <template>
   <Container>
-    <h1>Корзина</h1>
+    <h1>{{ $t('cart') }}</h1>
 
     <!-- Вывод содержимого корзины -->
     <div v-if="cart.items.length">
@@ -15,48 +15,58 @@
           <span>{{ item.quantity }}</span>
           <button @click="increment(item)">+</button>
         </div>
-        <span>{{ item.product.price * item.quantity }} ₽</span>
-        <button @click="cart.remove(item.product._id)">Удалить</button>
+        <span>{{ item.product.price * item.quantity }} {{ currencySign }}</span>
+        <button @click="cart.remove(item.product._id)">{{ $t('remove') }}</button>
       </div>
-      <div class="cart-total"><b>Итого:</b> {{ cart.total }} ₽</div>
+      <div class="cart-total">
+        <b>{{ $t('total') }}</b> {{ cart.total }} {{ currencySign }}
+      </div>
     </div>
     <div v-else class="cart-empty">
-      Корзина пуста
+      {{ $t('cart_empty') }}
     </div>
 
     <!-- Форма оформления заказа -->
     <form v-if="cart.items.length && !orderSuccess" @submit.prevent="handleOrder" class="order-form">
-      <h2>Оформить заказ</h2>
-      <input v-model="name" placeholder="Ваше имя" required />
-      <input v-model="phone" placeholder="Телефон" required />
-      <input v-model="address" placeholder="Адрес" required />
-      <textarea v-model="comment" placeholder="Комментарий"></textarea>
+      <h2>{{ $t('checkout') }}</h2>
+      <input v-model="name" :placeholder="$t('your_name')" required />
+      <input v-model="phone" :placeholder="$t('phone')" required />
+      <input v-model="address" :placeholder="$t('address')" required />
+      <textarea v-model="comment" :placeholder="$t('comment')"></textarea>
       <button type="submit" :disabled="isLoading">
-        {{ isLoading ? "Оформляем..." : "Оформить заказ" }}
+        {{ isLoading ? $t('processing') : $t('place_order') }}
       </button>
     </form>
 
     <div v-if="orderSuccess" class="order-success">
-      <b>Спасибо! Ваш заказ оформлен.</b>
+      <b>{{ $t('thanks') }}</b>
     </div>
   </Container>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useCartStore } from '../store/cart'
 import { createOrder } from '../api'
 import Container from '../components/Container.vue'
 import { useAuthStore } from '../store/auth'
+import { useI18n } from 'vue-i18n'
 
 const cart = useCartStore()
 const auth = useAuthStore()
+const { t, locale } = useI18n()
+
 const name = ref('')
 const phone = ref('')
 const address = ref('')
 const comment = ref('')
 const isLoading = ref(false)
 const orderSuccess = ref(false)
+
+// Динамический вывод валюты по локали
+const currencySign = computed(() => {
+  return locale.value === 'rs' ? 'дин.' : '₽'
+})
 
 // --- Автозаполнение формы если пользователь залогинен ---
 onMounted(() => {
@@ -100,7 +110,7 @@ async function handleOrder() {
     address.value = ''
     comment.value = ''
   } catch (e) {
-    alert('Ошибка оформления заказа')
+    alert(t('order_error'))
   } finally {
     isLoading.value = false
   }

@@ -2,7 +2,7 @@
   <div class="topbar">
     <div class="topbar-left">
       <el-icon><Location /></el-icon>
-      <span>Выберите адрес доставки</span>
+      <span>{{ $t('delivery') }}</span>
     </div>
     <div class="topbar-right">
       <img :src="flagSrc(currentLocale)" height="16" style="margin-right:5px;" />
@@ -28,7 +28,7 @@
       <img src="/src/assets/logo.svg" alt="Midori Sushi" class="header-logo-img" />
     </div>
     <div class="header-info">
-      <span class="header-phone">+7 (900) 777-77-77</span>
+      <span class="header-phone">{{ $t('phone') }}</span>
       <template v-if="auth.user">
         <el-dropdown>
           <span class="header-user" style="cursor:pointer">
@@ -37,8 +37,8 @@
           </span>
           <template #dropdown>
             <el-dropdown-menu>
-              <el-dropdown-item @click="$router.push('/profile')">Профиль</el-dropdown-item>
-              <el-dropdown-item @click="auth.logout">Выйти</el-dropdown-item>
+              <el-dropdown-item @click="$router.push('/profile')">{{ $t('profile') }}</el-dropdown-item>
+              <el-dropdown-item @click="auth.logout">{{ $t('logout') }}</el-dropdown-item>
             </el-dropdown-menu>
           </template>
         </el-dropdown>
@@ -50,7 +50,7 @@
         @click="loginModal = true"
         style="margin-left:10px;"
       >
-        <el-icon><User /></el-icon> Войти
+        <el-icon><User /></el-icon> {{ $t('login') }}
       </el-button>
     </div>
     <div class="header-spacer"></div>
@@ -62,56 +62,55 @@
       @click="$router.push('/cart')"
     >
       <el-icon><ShoppingCartFull /></el-icon>
-      <span class="cart-btn-label">Корзина</span>
+      <span class="cart-btn-label">{{ $t('cart') }}</span>
     </el-button>
   </el-header>
 
-<div class="header-mobile-actions" v-if="isMobile">
-  <button class="burger-btn custom-burger" @click="drawer = true" aria-label="Открыть меню">
-    <svg viewBox="0 0 64 64" width="40" height="40">
-      <circle cx="32" cy="32" r="32" fill="#222" />
-      <rect x="16" y="20" width="32" height="5" rx="2.5" fill="#fff"/>
-      <rect x="16" y="29.5" width="32" height="5" rx="2.5" fill="#fff"/>
-      <rect x="16" y="39" width="32" height="5" rx="2.5" fill="#fff"/>
-    </svg>
-  </button>
-  <div style="flex: 1"></div>
-  <el-button
-    type="primary"
-    class="header-cart-btn"
-    round
-    @click="$router.push('/cart')"
-  >
-    <el-icon><ShoppingCartFull /></el-icon>
-  </el-button>
-</div>
+  <div class="header-mobile-actions" v-if="isMobile">
+    <button class="burger-btn custom-burger" @click="drawer = true" aria-label="Открыть меню">
+      <svg viewBox="0 0 64 64" width="40" height="40">
+        <circle cx="32" cy="32" r="32" fill="#222" />
+        <rect x="16" y="20" width="32" height="5" rx="2.5" fill="#fff"/>
+        <rect x="16" y="29.5" width="32" height="5" rx="2.5" fill="#fff"/>
+        <rect x="16" y="39" width="32" height="5" rx="2.5" fill="#fff"/>
+      </svg>
+    </button>
+    <div style="flex: 1"></div>
+    <el-button
+      type="primary"
+      class="header-cart-btn"
+      round
+      @click="$router.push('/cart')"
+    >
+      <el-icon><ShoppingCartFull /></el-icon>
+    </el-button>
+  </div>
 
   <div class="nav-menu">
     <el-button link class="nav-link" @click="$router.push('/')" :class="{active: isActive('/')}">
-      Главная
+      {{ $t('main') }}
     </el-button>
     <el-button link class="nav-link" @click="$router.push('/delivery')" :class="{active: isActive('/delivery')}">
-      Доставка
+      {{ $t('delivery') }}
     </el-button>
     <el-button link class="nav-link" @click="$router.push('/about')" :class="{active: isActive('/about')}">
-      О нас
+      {{ $t('about') }}
     </el-button>
     <el-button
      v-if="auth.user && auth.user.role === 'user'"
-    link 
-    class="nav-link" 
-    @click="$router.push('/profile')" 
-    :class="{active: isActive('/profile')}">
-      Личный кабинет
+      link
+      class="nav-link"
+      @click="$router.push('/profile')"
+      :class="{active: isActive('/profile')}">
+      {{ $t('personal_cabinet') }}
     </el-button>
     <el-button
-        v-if="auth.user && auth.user.role === 'admin'"
-        
-        style="margin-left:16px;"
-        @click="$router.push('/admin')"
-      >
-        <el-icon><Menu /></el-icon>
-        <span class="admin-btn-label">Админ-панель</span>
+      v-if="auth.user && auth.user.role === 'admin'"
+      style="margin-left:16px;"
+      @click="$router.push('/admin')"
+    >
+      <el-icon><Menu /></el-icon>
+      <span class="admin-btn-label">{{ $t('admin_panel') }}</span>
     </el-button>
     <el-dropdown
       v-if="!isMobile"
@@ -121,7 +120,7 @@
     >
       <el-button class="menu-btn" type="default">
         <el-icon><Menu /></el-icon>
-        Меню
+        {{ $t('menu') }}
       </el-button>
       <template #dropdown>
         <el-dropdown-menu>
@@ -144,7 +143,7 @@
     :with-header="false"
     custom-class="categories-drawer"
   >
-    <div class="drawer-title">Категории</div>
+    <div class="drawer-title">{{ $t('choose_category') }}</div>
     <el-menu
       class="categories-menu"
       mode="vertical"
@@ -168,23 +167,28 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ShoppingCartFull, User, Menu, Location, DArrowRight } from '@element-plus/icons-vue'
+import { ShoppingCartFull, User, Menu, Location } from '@element-plus/icons-vue'
 import LoginModal from './LoginModal.vue'
 import { getCategories } from '../api'
 import { useAuthStore } from '../store/auth'
+import { useI18n } from 'vue-i18n'
 
 const auth = useAuthStore()
 
-const locales = ['ru', 'en', 'rs']
+// Только два языка!
+const locales = ['ru', 'rs']
 const currentLocale = ref('ru')
+
+const { locale } = useI18n()
+
 function flagSrc(lang) {
-  if (lang === 'en') return 'https://flagcdn.com/h20/gb.png'
   if (lang === 'ru') return 'https://flagcdn.com/h20/ru.png'
   if (lang === 'rs') return 'https://flagcdn.com/h20/rs.png'
   return ''
 }
 function changeLocale(loc) {
   currentLocale.value = loc
+  locale.value = loc // переключает vue-i18n язык!
 }
 
 const route = useRoute()

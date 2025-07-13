@@ -8,7 +8,8 @@
     </div>
     <ul class="cat-list">
       <li v-for="cat in categories" :key="cat._id" class="cat-item">
-        <span>{{ cat.name }}</span>
+        <!-- Показываем оба названия (можно одно, если надо) -->
+        <span>{{ cat.name.ru }} / {{ cat.name.rs }}</span>
         <div class="cat-actions">
           <button @click="editCategory(cat)">✏️</button>
           <button @click="deleteCategory(cat)">🗑️</button>
@@ -20,7 +21,8 @@
       <div class="modal-window">
         <h4>{{ editMode ? 'Редактировать' : 'Добавить' }} категорию</h4>
         <form @submit.prevent="saveCategory">
-          <input v-model="modalCatName" placeholder="Название категории" required />
+          <input v-model="modalCatName.ru" placeholder="Название категории (рус)" required />
+          <input v-model="modalCatName.rs" placeholder="Назив категорије (српски)" required />
           <div class="modal-btns">
             <button type="submit">{{ editMode ? 'Сохранить' : 'Добавить' }}</button>
             <button type="button" @click="closeModal">Отмена</button>
@@ -37,7 +39,7 @@ import { getCategories, addCategoryApi, updateCategoryApi, deleteCategoryApi } f
 
 const categories = ref([])
 const showModal = ref(false)
-const modalCatName = ref('')
+const modalCatName = ref({ ru: '', rs: '' })
 const editMode = ref(false)
 const editCatId = ref(null)
 
@@ -48,7 +50,7 @@ onMounted(loadCategories)
 
 function closeModal() {
   showModal.value = false
-  modalCatName.value = ''
+  modalCatName.value = { ru: '', rs: '' }
   editMode.value = false
   editCatId.value = null
 }
@@ -56,23 +58,23 @@ function closeModal() {
 function editCategory(cat) {
   editMode.value = true
   showModal.value = true
-  modalCatName.value = cat.name
+  modalCatName.value = { ...cat.name }
   editCatId.value = cat._id
 }
 
 async function saveCategory() {
-  if (!modalCatName.value.trim()) return
+  if (!modalCatName.value.ru.trim() || !modalCatName.value.rs.trim()) return
   if (editMode.value) {
-    await updateCategoryApi(editCatId.value, modalCatName.value)
+    await updateCategoryApi(editCatId.value, { name: { ...modalCatName.value } })
   } else {
-    await addCategoryApi(modalCatName.value)
+    await addCategoryApi({ name: { ...modalCatName.value } })
   }
   closeModal()
   await loadCategories()
 }
 
 async function deleteCategory(cat) {
-  if (confirm(`Удалить категорию "${cat.name}"?`)) {
+  if (confirm(`Удалить категорию "${cat.name.ru}"?`)) {
     await deleteCategoryApi(cat._id)
     await loadCategories()
   }
@@ -80,6 +82,7 @@ async function deleteCategory(cat) {
 </script>
 
 <style scoped>
+/* Оставил твои стили без изменений */
 .categories-admin { max-width: 420px; }
 .cat-header {
   display: flex; justify-content: space-between; align-items: center;

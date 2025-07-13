@@ -1,9 +1,9 @@
 <template>
   <Container>
     <div class="product-list-title">
-      <h1 v-if="!currentCategory">Все блюда</h1>
+      <h1 v-if="!currentCategory">{{ $t('all_categories') }}</h1>
       <h1 v-else>
-        Категория: {{ currentCategoryName }}
+        {{ $t('category') }}: {{ currentCategoryName }}
       </h1>
     </div>
     <div class="product-list">
@@ -13,7 +13,7 @@
         :product="product"
       />
       <div v-if="products.length === 0" class="no-items">
-        Нет товаров в этой категории
+        {{ $t('no_items_in_category') }}
       </div>
     </div>
   </Container>

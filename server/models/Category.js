@@ -1,8 +1,11 @@
 const mongoose = require('mongoose')
 
 const CategorySchema = new mongoose.Schema({
-  name: { type: String, required: true, unique: true },
-  // Можно добавить иконку, описание и т.д.
+  name: {
+    ru: { type: String, required: true },
+    rs: { type: String, required: true }
+  },
+
 })
 
 module.exports = mongoose.model('Category', CategorySchema)
