@@ -9,25 +9,28 @@
         :key="item.product._id"
         class="cart-item"
       >
-        <!-- МИНИ-КАРТИНКА -->
-        <img
-          v-if="item.product.image"
-          :src="getImageUrl(item.product.image)"
-          alt="img"
-          class="cart-img"
-        />
-        <!-- Если картинки нет -->
-        <div v-else class="cart-img cart-img--placeholder"></div>
-
-        <!-- МУЛЬТИЯЗЫЧНОЕ НАЗВАНИЕ ТОВАРА -->
-        <span>{{ localizedTitle(item.product) }}</span>
-        <div class="cart-qty">
+        <!-- Картинка -->
+        <span class="cart-img-wrap">
+          <img
+            v-if="item.product.image"
+            :src="getImageUrl(item.product.image)"
+            alt="img"
+            class="cart-img"
+          />
+          <span v-else class="cart-img cart-img--placeholder"></span>
+        </span>
+        <!-- Название -->
+        <span class="cart-title">{{ localizedTitle(item.product) }}</span>
+        <!-- +/- -->
+        <span class="cart-qty">
           <button @click="decrement(item)">–</button>
           <span>{{ item.quantity }}</span>
           <button @click="increment(item)">+</button>
-        </div>
-        <span>{{ item.product.price * item.quantity }} {{ currencySign }}</span>
-        <button @click="cart.remove(item.product._id)">
+        </span>
+        <!-- Цена -->
+        <span class="cart-price">{{ item.product.price * item.quantity }} {{ currencySign }}</span>
+        <!-- Удалить -->
+        <button class="cart-remove" @click="cart.remove(item.product._id)">
           {{ $t('remove') }}
         </button>
       </div>
@@ -58,12 +61,13 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { useCartStore } from '../store/cart'
-import { createOrder } from '../api'
 import Container from '../components/Container.vue'
+import { ref, computed, onMounted, watch } from 'vue'
+import { useCartStore } from '../store/cart'
+import { createOrder, getProfileApi } from '../api'
 import { useAuthStore } from '../store/auth'
 import { useI18n } from 'vue-i18n'
+import { STATIC_BASE_URL } from '../constants'
 
 const cart = useCartStore()
 const auth = useAuthStore()
@@ -76,9 +80,8 @@ const comment = ref('')
 const isLoading = ref(false)
 const orderSuccess = ref(false)
 
-// Динамический вывод валюты по локали
 const currencySign = computed(() => {
-  return locale.value === 'rs' ? 'дин.' : '₽'
+  return locale.value === 'rs' ? 'дин.' : 'дин.'
 })
 
 function localizedTitle(product) {
@@ -86,29 +89,50 @@ function localizedTitle(product) {
   return product.title[locale.value] || product.title.ru || ''
 }
 
-// Формирует абсолютный путь к изображению товара
-function getImageUrl(image) {
-  if (!image) return ''
-  if (image.startsWith('http')) return image
-  return `/uploads/${image}`
+function getImageUrl(img) {
+  if (!img) return '/src/assets/default-dish.png'
+  if (img.startsWith('/uploads')) return STATIC_BASE_URL + img
+  if (img.startsWith('http')) return img
+  return STATIC_BASE_URL + '/uploads/' + img
 }
 
-onMounted(() => {
-  if (auth.user) {
-    name.value = auth.user.name || ''
-    phone.value = auth.user.phone || ''
-    address.value = auth.user.address || ''
+// Подгружаем адрес из localStorage при монтировании (если есть)
+onMounted(async () => {
+  const addr = localStorage.getItem('selectedAddress')
+  if (addr) {
+    address.value = addr
   }
-  // если нет в профиле — ищем в localStorage
-  if (!address.value) {
-    const addr = localStorage.getItem('selectedAddress')
-    if (addr) address.value = addr
+  try {
+    const user = await getProfileApi()
+    name.value = user.name || ''
+    phone.value = user.phone || ''
+    // Только если address еще пустой, подгружаем из профиля пользователя
+    if (!address.value && user.address) {
+      address.value = user.address
+    }
+    auth.user = { ...auth.user, ...user }
+  } catch (e) {
+    // Можно залогировать ошибку или проигнорировать
   }
 })
+
+// Следим за изменениями auth.user и автозаполняем только name и phone!
+watch(
+  () => auth.user,
+  (user) => {
+    if (user) {
+      name.value = user.name || ''
+      phone.value = user.phone || ''
+      // address.value НЕ трогаем! Не мешаем локальному или введённому вручную
+    }
+  },
+  { immediate: true }
+)
 
 function increment(item) {
   cart.add(item.product, 1)
 }
+
 function decrement(item) {
   if (item.quantity > 1) {
     item.quantity--
@@ -149,10 +173,19 @@ async function handleOrder() {
 <style scoped>
 .cart-item {
   display: flex;
-  gap: 16px;
   align-items: center;
   padding: 12px 0;
   border-bottom: 1px solid #eee;
+  min-height: 60px;
+}
+.cart-img-wrap {
+  width: 46px;
+  height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 14px;
+  flex-shrink: 0;
 }
 .cart-img {
   width: 46px;
@@ -160,17 +193,33 @@ async function handleOrder() {
   object-fit: cover;
   border-radius: 8px;
   background: #f4f4f4;
-  margin-right: 10px;
-  flex-shrink: 0;
 }
 .cart-img--placeholder {
   background: #e0e0e0;
+  width: 46px;
+  height: 46px;
   display: inline-block;
+  border-radius: 8px;
+}
+.cart-title {
+  flex: 2 1 160px;
+  font-size: 1.1rem;
+  font-weight: 400;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-right: 18px;
 }
 .cart-qty {
   display: flex;
   align-items: center;
   gap: 5px;
+  width: 92px;
+  min-width: 92px;
+  max-width: 92px;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-right: 18px;
 }
 .cart-qty button {
   background: #f3f5fb;
@@ -183,9 +232,33 @@ async function handleOrder() {
   cursor: pointer;
   padding: 0;
   transition: background 0.15s;
+  flex-shrink: 0;
 }
 .cart-qty button:hover {
   background: #e1efff;
+}
+.cart-price {
+  width: 90px;
+  min-width: 90px;
+  max-width: 90px;
+  text-align: right;
+  font-weight: 500;
+  margin-right: 18px;
+  flex-shrink: 0;
+}
+.cart-remove {
+  min-width: 68px;
+  color: #409EFF;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  font-size: 16px;
+  text-align: left;
+  transition: color 0.15s;
+}
+.cart-remove:hover {
+  color: #1766aa;
 }
 .cart-total {
   font-size: 18px;
@@ -229,16 +302,41 @@ button[type="submit"]:disabled {
   background: #b7dcfc;
   cursor: not-allowed;
 }
-button {
-  background: transparent;
-  color: #409EFF;
-  border: none;
-  font-size: 16px;
-  cursor: pointer;
-  padding: 0 7px;
-  transition: color 0.15s;
-}
-button:hover {
-  color: #1766aa;
+/* ----- MOBILE ADAPTIVE ----- */
+@media (max-width: 600px) {
+  .cart-item {
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 7px 0;
+    min-height: unset;
+  }
+  .cart-img-wrap,
+  .cart-img,
+  .cart-img--placeholder {
+    width: 38px;
+    height: 38px;
+    margin-right: 3px;
+  }
+  .cart-title {
+    font-size: 0.98rem;
+    max-width: 100px;
+    margin-right: 8px;
+  }
+  .cart-qty {
+    width: 70px;
+    min-width: 70px;
+    max-width: 70px;
+    margin-right: 8px;
+  }
+  .cart-price {
+    width: 54px;
+    min-width: 54px;
+    max-width: 54px;
+    font-size: 0.99rem;
+    margin-right: 8px;
+  }
+  .order-form {
+    max-width: 100%;
+  }
 }
 </style>

@@ -4,8 +4,14 @@ import { onMounted } from 'vue'
 import { useAuthStore } from './store/auth'
 
 const auth = useAuthStore()
+
 onMounted(() => {
-  auth.fetchMe()
+  if (localStorage.getItem('token')) {
+    console.log('TOKEN есть, вызываю fetchMe()')
+    auth.fetchMe()
+  } else {
+    console.log('Токен не найден!')
+  }
 })
 </script>
 
